@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Hello World Mobile",
-    "slug": "hello-world-mobile",
+    "name": "Truck Tracker",
+    "slug": "truck-tracker",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -16,14 +16,23 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.yourcompany.helloworld"
+      "bundleIdentifier": "com.yourcompany.trucktracker",
+      "infoPlist": {
+        "NSCameraUsageDescription": "This app needs access to camera to take photos of trucks.",
+        "NSPhotoLibraryUsageDescription": "This app needs access to photo library to select truck images."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#f0f8ff"
       },
-      "package": "com.yourcompany.helloworld"
+      "package": "com.yourcompany.trucktracker",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
