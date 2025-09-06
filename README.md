@@ -1,6 +1,20 @@
-# Hello World Mobile App 📱
+# Simple Mobile App 📱
 
 A simple Hello World app that runs on both Android and iOS for free using React Native and Expo.
+
+## 🚀 Quick Start (30 seconds)
+
+```bash
+# Clone and setup
+git clone https://github.com/Gnana151/Tracking-App.git
+cd Tracking-App
+./setup.sh
+
+# Start the app
+npm start
+
+# Scan QR code with Expo Go app on your phone
+```
 
 ## Features
 
@@ -9,22 +23,49 @@ A simple Hello World app that runs on both Android and iOS for free using React 
 - ✅ Interactive button with alert
 - ✅ Modern, clean UI design
 - ✅ Easy to set up and run
+- ✅ Clean codebase (no large files committed to Git)
 
 ## Prerequisites
 
 Before you begin, make sure you have:
 
-1. **Node.js** (version 14 or higher) - [Download here](https://nodejs.org/)
-2. **Expo CLI** - Install globally with: `npm install -g @expo/cli`
+1. **Node.js** (version 18 or higher) - [Download here](https://nodejs.org/)
+2. **Git** - [Download here](https://git-scm.com/)
 3. **Expo Go app** on your phone:
    - [Android Play Store](https://play.google.com/store/apps/details?id=host.exp.exponent)
    - [iOS App Store](https://apps.apple.com/app/expo-go/id982107779)
 
 ## Quick Start
 
-1. **Navigate to the app directory:**
+### **Method 1: Using Setup Script (Recommended)**
+
+1. **Clone the repository:**
    ```bash
-   cd hello-world-mobile
+   git clone https://github.com/Gnana151/Tracking-App.git
+   cd Tracking-App
+   ```
+
+2. **Run the setup script:**
+   ```bash
+   ./setup.sh
+   ```
+
+3. **Start the app:**
+   ```bash
+   npm start
+   ```
+
+4. **Test on your device:**
+   - Open the Expo Go app on your phone
+   - Scan the QR code that appears in your terminal/browser
+   - The app will load on your device!
+
+### **Method 2: Manual Setup**
+
+1. **Clone and navigate to the repository:**
+   ```bash
+   git clone https://github.com/Gnana151/Tracking-App.git
+   cd Tracking-App
    ```
 
 2. **Install dependencies:**
@@ -32,17 +73,15 @@ Before you begin, make sure you have:
    npm install
    ```
 
-3. **Start the development server:**
+3. **Install Expo CLI globally:**
    ```bash
-   npm start
-   # or
-   expo start
+   npm install -g @expo/cli
    ```
 
-4. **Test on your device:**
-   - Open the Expo Go app on your phone
-   - Scan the QR code that appears in your terminal/browser
-   - The app will load on your device!
+4. **Start the development server:**
+   ```bash
+   npm start
+   ```
 
 ## Alternative Testing Methods
 
@@ -67,12 +106,37 @@ npm run web
 ## Project Structure
 
 ```
-hello-world-mobile/
+Tracking-App/
 ├── App.js              # Main app component
 ├── app.json            # Expo configuration
 ├── package.json        # Dependencies and scripts
 ├── babel.config.js     # Babel configuration
+├── setup.sh            # Automated setup script
+├── Dockerfile          # Docker configuration (optional)
+├── .nvmrc              # Node.js version specification
+├── .gitignore          # Git ignore rules
 └── README.md          # This file
+```
+
+## Available Scripts
+
+```bash
+# Setup environment (install dependencies)
+npm run setup
+
+# Start the development server
+npm start
+
+# Start for specific platforms
+npm run android    # Android emulator
+npm run ios        # iOS simulator (Mac only)
+npm run web        # Web browser
+
+# Clean environment (remove dependencies)
+npm run clean
+
+# Fresh start (clean + setup)
+npm run fresh
 ```
 
 ## Customization
@@ -95,6 +159,35 @@ Replace the icon files in the `assets/` folder:
 
 ### Modifying the UI
 Edit `App.js` to change the text, colors, or layout. The app uses React Native's StyleSheet for styling.
+
+## Virtual Environment & Dependency Management
+
+This project uses a clean approach to dependency management:
+
+- **No large files in Git** - `node_modules/` and `package-lock.json` are ignored
+- **Easy setup** - Run `./setup.sh` or `npm run setup` to install dependencies
+- **Version control** - `.nvmrc` ensures consistent Node.js version
+- **Clean environment** - Dependencies are installed locally, not globally
+
+### Environment Setup Options
+
+1. **Setup Script (Recommended):**
+   ```bash
+   ./setup.sh
+   ```
+
+2. **npm Scripts:**
+   ```bash
+   npm run setup    # Install dependencies
+   npm run clean    # Remove dependencies
+   npm run fresh    # Clean + setup
+   ```
+
+3. **Docker (Complete Isolation):**
+   ```bash
+   docker build -t simple-mobile-app .
+   docker run -p 8081:8081 simple-mobile-app
+   ```
 
 ## Free Testing Options
 
@@ -131,20 +224,38 @@ Edit `App.js` to change the text, colors, or layout. The app uses React Native's
 1. **"Expo CLI not found"**
    ```bash
    npm install -g @expo/cli
+   # Or run the setup script
+   ./setup.sh
    ```
 
 2. **"Metro bundler not starting"**
    ```bash
    npx expo start --clear
+   # Or clean and reinstall
+   npm run fresh
    ```
 
-3. **QR code not working**
+3. **"Dependencies not found"**
+   ```bash
+   # Install dependencies
+   npm run setup
+   # Or use the setup script
+   ./setup.sh
+   ```
+
+4. **QR code not working**
    - Make sure your phone and computer are on the same WiFi network
    - Try the "tunnel" option: `expo start --tunnel`
 
-4. **App not loading on device**
+5. **App not loading on device**
    - Check that Expo Go is up to date
    - Restart the Expo development server
+   - Try: `npm run fresh` then `npm start`
+
+6. **Node.js version issues**
+   - Use Node.js 18 or higher
+   - If using nvm: `nvm use 18`
+   - Check version: `node --version`
 
 ## Next Steps
 
