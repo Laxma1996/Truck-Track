@@ -1,0 +1,32 @@
+{
+  "expo": {
+    "name": "Hello World Mobile",
+    "slug": "hello-world-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#f0f8ff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.yourcompany.helloworld"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#f0f8ff"
+      },
+      "package": "com.yourcompany.helloworld"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}
