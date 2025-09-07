@@ -13,18 +13,18 @@
     "fresh": "npm run clean && npm run setup"
   },
   "dependencies": {
-    "expo": "~49.0.15",
-    "expo-status-bar": "~1.6.0",
-    "react": "18.2.0",
-    "react-native": "0.72.10",
-    "@react-navigation/native": "^6.1.7",
-    "@react-navigation/stack": "^6.3.17",
-    "react-native-screens": "~3.22.0",
-    "react-native-safe-area-context": "4.6.3",
-    "expo-camera": "~13.4.4",
-    "expo-image-picker": "~14.3.2",
-    "react-native-paper": "^5.10.6",
-    "react-native-vector-icons": "^10.0.0"
+    "expo": "~53.0.0",
+    "expo-status-bar": "~2.2.3",
+    "react": "19.0.0",
+    "react-native": "0.79.5",
+    "@react-navigation/native": "^6.1.18",
+    "@react-navigation/stack": "^6.4.1",
+    "react-native-screens": "~4.11.1",
+    "react-native-safe-area-context": "5.4.0",
+    "expo-camera": "~16.1.11",
+    "expo-image-picker": "~16.1.4",
+    "react-native-paper": "^5.12.5",
+    "react-native-vector-icons": "^10.2.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"

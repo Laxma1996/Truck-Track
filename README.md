@@ -1,6 +1,6 @@
-# Simple Mobile App 📱
+# Truck Tracker App 📱
 
-A simple Hello World app that runs on both Android and iOS for free using React Native and Expo.
+A professional truck logging and tracking app that runs on both Android and iOS using React Native and Expo SDK 53.
 
 ## 🚀 Quick Start (30 seconds)
 
@@ -18,12 +18,15 @@ npm start
 
 ## Features
 
-- ✅ Cross-platform (Android & iOS)
-- ✅ Completely free to develop and test
-- ✅ Interactive button with alert
-- ✅ Modern, clean UI design
-- ✅ Easy to set up and run
-- ✅ Clean codebase (no large files committed to Git)
+- ✅ **Cross-platform** (Android & iOS)
+- ✅ **Professional UI** with Material Design
+- ✅ **Truck Logging System** with photo capture
+- ✅ **Authentication** with secure login
+- ✅ **Data Storage** with local persistence
+- ✅ **Camera Integration** for truck photos
+- ✅ **Weight Tracking** with validation
+- ✅ **Expo SDK 53** - Latest features and performance
+- ✅ **Clean Architecture** - Easy to maintain and extend
 
 ## Prerequisites
 
