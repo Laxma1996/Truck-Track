@@ -13,17 +13,18 @@
     "fresh": "npm run clean && npm run setup"
   },
   "dependencies": {
+    "@react-native-async-storage/async-storage": "^2.1.2",
+    "@react-navigation/native": "^6.1.18",
+    "@react-navigation/stack": "^6.4.1",
     "expo": "~53.0.0",
+    "expo-camera": "~16.1.11",
+    "expo-image-picker": "~16.1.4",
     "expo-status-bar": "~2.2.3",
     "react": "19.0.0",
     "react-native": "0.79.5",
-    "@react-navigation/native": "^6.1.18",
-    "@react-navigation/stack": "^6.4.1",
-    "react-native-screens": "~4.11.1",
-    "react-native-safe-area-context": "5.4.0",
-    "expo-camera": "~16.1.11",
-    "expo-image-picker": "~16.1.4",
     "react-native-paper": "^5.12.5",
+    "react-native-safe-area-context": "5.4.0",
+    "react-native-screens": "~4.11.1",
     "react-native-vector-icons": "^10.2.0"
   },
   "devDependencies": {

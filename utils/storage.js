@@ -1,11 +1,13 @@
 // Data storage utility for truck logging
 // This can be easily replaced with database integration later
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 const STORAGE_KEY = 'truckJobs';
 
-export const saveJob = (jobData) => {
+export const saveJob = async (jobData) => {
   try {
-    const existingJobs = getJobs();
+    const existingJobs = await getJobs();
     const newJob = {
       id: Date.now(),
       ...jobData,
@@ -14,10 +16,8 @@ export const saveJob = (jobData) => {
     
     const updatedJobs = [...existingJobs, newJob];
     
-    // In React Native, use AsyncStorage instead of localStorage
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedJobs));
-    }
+    // Use AsyncStorage for React Native
+    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedJobs));
     
     return newJob;
   } catch (error) {
@@ -26,35 +26,30 @@ export const saveJob = (jobData) => {
   }
 };
 
-export const getJobs = () => {
+export const getJobs = async () => {
   try {
-    if (typeof localStorage !== 'undefined') {
-      const jobs = localStorage.getItem(STORAGE_KEY);
-      return jobs ? JSON.parse(jobs) : [];
-    }
-    return [];
+    const jobs = await AsyncStorage.getItem(STORAGE_KEY);
+    return jobs ? JSON.parse(jobs) : [];
   } catch (error) {
     console.error('Error getting jobs:', error);
     return [];
   }
 };
 
-export const getJobById = (id) => {
-  const jobs = getJobs();
+export const getJobById = async (id) => {
+  const jobs = await getJobs();
   return jobs.find(job => job.id === id);
 };
 
-export const updateJob = (id, updates) => {
+export const updateJob = async (id, updates) => {
   try {
-    const jobs = getJobs();
+    const jobs = await getJobs();
     const jobIndex = jobs.findIndex(job => job.id === id);
     
     if (jobIndex !== -1) {
       jobs[jobIndex] = { ...jobs[jobIndex], ...updates };
       
-      if (typeof localStorage !== 'undefined') {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(jobs));
-      }
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(jobs));
       
       return jobs[jobIndex];
     }
@@ -66,14 +61,12 @@ export const updateJob = (id, updates) => {
   }
 };
 
-export const deleteJob = (id) => {
+export const deleteJob = async (id) => {
   try {
-    const jobs = getJobs();
+    const jobs = await getJobs();
     const filteredJobs = jobs.filter(job => job.id !== id);
     
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(filteredJobs));
-    }
+    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(filteredJobs));
     
     return true;
   } catch (error) {
@@ -82,8 +75,8 @@ export const deleteJob = (id) => {
   }
 };
 
-export const exportToExcel = () => {
-  const jobs = getJobs();
+export const exportToExcel = async () => {
+  const jobs = await getJobs();
   
   if (jobs.length === 0) {
     return null;

@@ -101,7 +101,7 @@ export default function LoggingScreen({ navigation }) {
     setIsLoading(true);
 
     // Simulate data processing
-    setTimeout(() => {
+    setTimeout(async () => {
       const jobData = {
         truckType,
         weight: parseFloat(weight),
@@ -111,7 +111,7 @@ export default function LoggingScreen({ navigation }) {
 
       try {
         // Save job using storage utility
-        const savedJob = saveJob(jobData);
+        const savedJob = await saveJob(jobData);
         
         setIsLoading(false);
         
