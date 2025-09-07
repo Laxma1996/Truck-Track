@@ -10,7 +10,7 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
-import { Card, Title, Paragraph, Button } from 'react-native-paper';
+import { Card, Title, Paragraph } from 'react-native-paper';
 
 export default function LoginScreen({ navigation }) {
   const [username, setUsername] = useState('');

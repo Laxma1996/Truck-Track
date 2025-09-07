@@ -10,7 +10,7 @@ import {
   Image,
   Modal,
 } from 'react-native';
-import { Card, Title, Paragraph, Button, Picker } from 'react-native-paper';
+import { Card, Title, Paragraph, Button } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
 import { saveJob } from '../utils/storage';
 
@@ -19,6 +19,7 @@ export default function LoggingScreen({ navigation }) {
   const [weight, setWeight] = useState('');
   const [photo, setPhoto] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isTruckTypeModalVisible, setIsTruckTypeModalVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const truckTypes = [
@@ -155,18 +156,15 @@ export default function LoggingScreen({ navigation }) {
           {/* Truck Type Dropdown */}
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Truck Type *</Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={truckType}
-                onValueChange={setTruckType}
-                style={styles.picker}
-              >
-                <Picker.Item label="Select truck type..." value="" />
-                {truckTypes.map((type, index) => (
-                  <Picker.Item key={index} label={type} value={type} />
-                ))}
-              </Picker>
-            </View>
+            <TouchableOpacity 
+              style={styles.dropdown}
+              onPress={() => setIsTruckTypeModalVisible(true)}
+            >
+              <Text style={[styles.dropdownText, !truckType && styles.placeholder]}>
+                {truckType || 'Select truck type...'}
+              </Text>
+              <Text style={styles.dropdownArrow}>▼</Text>
+            </TouchableOpacity>
           </View>
 
           {/* Weight Input */}
@@ -248,6 +246,40 @@ export default function LoggingScreen({ navigation }) {
           </View>
         </View>
       </Modal>
+
+      {/* Truck Type Selection Modal */}
+      <Modal
+        visible={isTruckTypeModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setIsTruckTypeModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Select Truck Type</Text>
+            
+            {truckTypes.map((type, index) => (
+              <TouchableOpacity 
+                key={index}
+                style={styles.modalButton} 
+                onPress={() => {
+                  setTruckType(type);
+                  setIsTruckTypeModalVisible(false);
+                }}
+              >
+                <Text style={styles.modalButtonText}>{type}</Text>
+              </TouchableOpacity>
+            ))}
+            
+            <TouchableOpacity 
+              style={[styles.modalButton, styles.cancelButton]} 
+              onPress={() => setIsTruckTypeModalVisible(false)}
+            >
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -290,14 +322,29 @@ const styles = StyleSheet.create({
     color: '#2c3e50',
     marginBottom: 8,
   },
-  pickerContainer: {
+  dropdown: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 8,
     backgroundColor: '#fff',
-  },
-  picker: {
+    paddingHorizontal: 15,
+    paddingVertical: 12,
     height: 50,
+  },
+  dropdownText: {
+    fontSize: 16,
+    color: '#2c3e50',
+    flex: 1,
+  },
+  placeholder: {
+    color: '#999',
+  },
+  dropdownArrow: {
+    fontSize: 12,
+    color: '#666',
   },
   input: {
     borderWidth: 1,
