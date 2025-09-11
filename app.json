@@ -4,20 +4,20 @@
     "slug": "truck-tracker",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "https://via.placeholder.com/1024x1024/3498db/ffffff?text=TT",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "https://via.placeholder.com/1242x2436/3498db/ffffff?text=Truck+Tracker",
+      "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#f0f8ff"
     },
     "assetBundlePatterns": [
       "**/*"
     ],
-    "platforms": ["ios", "android"],
+    "platforms": ["ios", "android", "web"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.yourcompany.trucktracker",
+      "bundleIdentifier": "com.trucktracker.app",
       "infoPlist": {
         "NSCameraUsageDescription": "This app needs access to camera to take photos of trucks.",
         "NSPhotoLibraryUsageDescription": "This app needs access to photo library to select truck images."
@@ -25,15 +25,18 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "https://via.placeholder.com/1024x1024/3498db/ffffff?text=TT",
+        "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#f0f8ff"
       },
-      "package": "com.yourcompany.trucktracker",
+      "package": "com.trucktracker.app",
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE"
       ]
+    },
+    "web": {
+      "bundler": "metro"
     }
   }
 }

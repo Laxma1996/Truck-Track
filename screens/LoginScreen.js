@@ -18,6 +18,8 @@ export default function LoginScreen({ navigation }) {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = async () => {
+    console.log('Login attempt:', { username, password });
+    
     if (!username.trim() || !password.trim()) {
       Alert.alert('Error', 'Please enter both username and password');
       return;
@@ -31,13 +33,11 @@ export default function LoginScreen({ navigation }) {
       
       // Simple authentication (in real app, this would be server-side)
       if (username === 'admin' && password === 'password') {
-        Alert.alert('Success', 'Login successful!', [
-          {
-            text: 'OK',
-            onPress: () => navigation.navigate('Logging')
-          }
-        ]);
+        console.log('Login successful, navigating to Logging screen');
+        // Navigate directly without alert for better web compatibility
+        navigation.navigate('Logging');
       } else {
+        console.log('Login failed: invalid credentials');
         Alert.alert('Error', 'Invalid username or password');
       }
     }, 1000);
