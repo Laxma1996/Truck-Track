@@ -13,21 +13,23 @@ A modern React Native mobile application for truck logging and tracking, built w
 - 📱 **Cross-Platform** - Works on Android, iOS, and Web
 - 🎨 **Modern UI** - Clean, responsive design with React Native Paper
 
+## 🚀 Live Demo
+
+**Web Version**: [https://gnana151.github.io/truck-tracker/](https://gnana151.github.io/truck-tracker/)
+
 ## 🚀 Quick Start
 
 ### Prerequisites
 
-- Node.js (v16 or higher)
+- Node.js (v18 or higher)
 - npm or yarn
 - Expo CLI
-- Android Studio (for Android development)
-- Xcode (for iOS development, Mac only)
 
 ### Installation
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/yourusername/truck-tracker.git
+   git clone https://github.com/Gnana151/truck-tracker.git
    cd truck-tracker
    ```
 
@@ -39,20 +41,18 @@ A modern React Native mobile application for truck logging and tracking, built w
 3. **Start the development server**:
    ```bash
    npm start
-   # or
-   npx expo start
    ```
 
 4. **Run on different platforms**:
    ```bash
    # Web
-   npx expo start --web
+   npm run web
    
    # Android
-   npx expo start --android
+   npm run android
    
    # iOS
-   npx expo start --ios
+   npm run ios
    ```
 
 ## 📱 How to Use
@@ -67,9 +67,8 @@ A modern React Native mobile application for truck logging and tracking, built w
 3. Take or select a photo
 4. Click "Start Job" to save data
 
-## 🛠️ Development
+## 🛠️ Project Structure
 
-### Project Structure
 ```
 truck-tracker/
 ├── App.js                 # Main app component
@@ -82,35 +81,13 @@ truck-tracker/
 │   └── storage.js        # Data storage utilities
 ├── web/
 │   └── index.html        # Web entry point
-└── assets/               # App assets
+└── dist/                 # Built web version
 ```
-
-### Key Technologies
-- **React Native** - Mobile app framework
-- **Expo** - Development platform
-- **React Navigation** - Navigation library
-- **React Native Paper** - UI component library
-- **Expo Image Picker** - Camera/gallery access
-- **AsyncStorage** - Local data storage
 
 ## 🌐 Web Deployment
 
-### Deploy to Vercel
-```bash
-# Install Vercel CLI
-npm install -g vercel
-
-# Build web version
-npx expo export --platform web
-
-# Deploy
-vercel --prod
-```
-
-### Deploy to Netlify
-1. Build web version: `npx expo export --platform web`
-2. Upload `dist` folder to Netlify
-3. Get public URL
+This app is automatically deployed to GitHub Pages using GitHub Actions. The web version is available at:
+**https://gnana151.github.io/truck-tracker/**
 
 ## 📦 Mobile App Distribution
 
@@ -126,29 +103,7 @@ eas login
 eas build --platform android --profile apk
 ```
 
-### Build for App Stores
-```bash
-# Android (Google Play Store)
-eas build --platform android --profile production
-
-# iOS (Apple App Store)
-eas build --platform ios --profile production
-```
-
-## 🔧 Configuration
-
-### App Configuration (`app.json`)
-- App name, version, and identifiers
-- Platform-specific settings
-- Permissions for camera and storage
-- Icons and splash screens
-
-### EAS Configuration (`eas.json`)
-- Build profiles for different environments
-- Android and iOS build settings
-- Distribution configurations
-
-## 📋 Available Scripts
+## 🔧 Available Scripts
 
 ```bash
 npm start          # Start Expo development server
@@ -160,30 +115,9 @@ npm run clean      # Clean dependencies
 npm run fresh      # Clean and reinstall
 ```
 
-## 🧪 Testing
+## 📄 License
 
-### Local Testing
-1. Start development server: `npm start`
-2. Scan QR code with Expo Go app
-3. Test all features on different devices
-
-### Web Testing
-1. Run: `npx expo start --web`
-2. Open browser to `http://localhost:19006`
-3. Test responsive design
-
-## 📱 Screenshots
-
-### Login Screen
-- Clean login interface
-- Demo credentials display
-- Feature highlights
-
-### Truck Logging Screen
-- Truck type selection
-- Weight input
-- Photo capture
-- Job management
+This project is licensed under the MIT License.
 
 ## 🤝 Contributing
 
@@ -192,33 +126,6 @@ npm run fresh      # Clean and reinstall
 3. Commit changes: `git commit -am 'Add new feature'`
 4. Push to branch: `git push origin feature/new-feature`
 5. Submit a pull request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🆘 Support
-
-For support and questions:
-- Create an issue on GitHub
-- Check the documentation
-- Review the troubleshooting guide
-
-## 🚀 Future Enhancements
-
-- [ ] Database integration
-- [ ] User authentication system
-- [ ] Cloud data sync
-- [ ] Push notifications
-- [ ] Offline mode improvements
-- [ ] Data export features
-- [ ] Advanced reporting
-
-## 📞 Contact
-
-- **Developer**: Your Name
-- **Email**: your.email@example.com
-- **GitHub**: [@yourusername](https://github.com/yourusername)
 
 ---
 
