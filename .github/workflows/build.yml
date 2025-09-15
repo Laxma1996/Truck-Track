@@ -1,20 +1,17 @@
-name: Deploy to GitHub Pages
+name: Build and Deploy
 
 on:
   push:
-    branches: [ main, gh-pages ]
-  pull_request:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout
+    - name: Checkout code
       uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
 
     - name: Setup Node.js
       uses: actions/setup-node@v4
@@ -31,9 +28,8 @@ jobs:
     - name: Build web version
       run: npx expo export --platform web
 
-    - name: Deploy to GitHub Pages
+    - name: Deploy to gh-pages
       uses: peaceiris/actions-gh-pages@v3
-      if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/gh-pages'
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./dist
