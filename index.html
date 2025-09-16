@@ -1,37 +1,162 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="utf-8" />
     <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-    <title>Truck Tracker</title>
-    <!-- The `react-native-web` recommended style reset: https://necolas.github.io/react-native-web/docs/setup/#root-element -->
-    <style id="expo-reset">
-      /* These styles make the body full-height */
-      html,
-      body {
-        height: 100%;
-      }
-      /* These styles disable body scrolling if you are using <ScrollView> */
-      body {
-        overflow: hidden;
-      }
-      /* These styles make the root element full-height */
-      #root {
-        display: flex;
-        height: 100%;
-        flex: 1;
-      }
+    <title>🚛 Truck Tracker App</title>
+    <style>
+        /* Reset and base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        body {
+            overflow: hidden;
+        }
+        
+        #root {
+            display: flex;
+            height: 100%;
+            flex: 1;
+        }
+        
+        /* Loading styles */
+        .loading-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        
+        .loading-content {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 400px;
+            width: 90%;
+        }
+        
+        .loading-logo {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+        
+        .loading-title {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+        
+        .loading-subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4CAF50;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error-message {
+            color: #e74c3c;
+            background: #fdf2f2;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .retry-btn {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+        
+        .retry-btn:hover {
+            background: #45a049;
+        }
     </style>
-  </head>
-
-  <body>
-    <!-- Use static rendering with Expo Router to support running without JavaScript. -->
-    <noscript>
-      You need to enable JavaScript to run this app.
-    </noscript>
-    <!-- The root element for your Expo app. -->
+</head>
+<body>
+    <!-- Loading screen -->
+    <div class="loading-container" id="loadingContainer">
+        <div class="loading-content">
+            <div class="loading-logo">🚛</div>
+            <h1 class="loading-title">Truck Tracker</h1>
+            <p class="loading-subtitle">Loading your app...</p>
+            <div class="spinner"></div>
+            <div class="error-message" id="errorMessage">
+                <p>Failed to load the app. Please check your internet connection and try again.</p>
+                <button class="retry-btn" onclick="loadApp()">Retry</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- App container -->
     <div id="root"></div>
-  <script src="./_expo/static/js/web/AppEntry-32c433723353aa50ab56c28b7c8d5e0e.js" defer></script>
+    
+    <!-- Load the React app -->
+    <script>
+        function loadApp() {
+            const loadingContainer = document.getElementById('loadingContainer');
+            const errorMessage = document.getElementById('errorMessage');
+            
+            // Hide error message
+            errorMessage.style.display = 'none';
+            
+            // Create script element
+            const script = document.createElement('script');
+            script.src = './_expo/static/js/web/AppEntry-32c433723353aa50ab56c28b7c8d5e0e.js';
+            script.defer = true;
+            
+            // Success handler
+            script.onload = function() {
+                console.log('Truck Tracker App loaded successfully!');
+                loadingContainer.style.display = 'none';
+            };
+            
+            // Error handler
+            script.onerror = function() {
+                console.error('Failed to load Truck Tracker App');
+                errorMessage.style.display = 'block';
+            };
+            
+            // Add script to head
+            document.head.appendChild(script);
+        }
+        
+        // Load app when page loads
+        document.addEventListener('DOMContentLoaded', loadApp);
+    </script>
 </body>
 </html>

@@ -1,6 +1,5 @@
 # Dependencies
 node_modules/
-# package-lock.json - needed for GitHub Actions
 
 # Expo
 .expo/
@@ -8,7 +7,6 @@ node_modules/
 
 # Build outputs
 dist/
-# _expo/ - needed for web deployment
 
 # Logs
 *.log

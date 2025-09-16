@@ -2,6 +2,10 @@
 
 A modern React Native mobile application for truck logging and tracking, built with Expo. Track different truck types, record weights, capture photos, and manage job data efficiently.
 
+## 🌐 Live Demo
+
+**Web Version**: [https://laxma1996.github.io/Truck-Track/](https://laxma1996.github.io/Truck-Track/)
+
 ## ✨ Features
 
 - 🔐 **Secure Login System** - Simple authentication with demo credentials
@@ -12,10 +16,6 @@ A modern React Native mobile application for truck logging and tracking, built w
 - 🆔 **Job Tracking** - Unique job IDs for each logging session
 - 📱 **Cross-Platform** - Works on Android, iOS, and Web
 - 🎨 **Modern UI** - Clean, responsive design with React Native Paper
-
-## 🚀 Live Demo
-
-**Web Version**: [https://laxma1996.github.io/Truck-Track/](https://laxma1996.github.io/Truck-Track/)
 
 ## 🚀 Quick Start
 
@@ -29,8 +29,8 @@ A modern React Native mobile application for truck logging and tracking, built w
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/Gnana151/truck-tracker.git
-   cd truck-tracker
+   git clone https://github.com/Laxma1996/Truck-Track.git
+   cd Truck-Track
    ```
 
 2. **Install dependencies**:
@@ -70,23 +70,22 @@ A modern React Native mobile application for truck logging and tracking, built w
 ## 🛠️ Project Structure
 
 ```
-truck-tracker/
+Truck-Track/
 ├── App.js                 # Main app component
 ├── app.json              # Expo configuration
-├── eas.json              # EAS build configuration
+├── package.json          # Dependencies and scripts
 ├── screens/
 │   ├── LoginScreen.js    # Login interface
 │   └── LoggingScreen.js  # Truck logging interface
 ├── utils/
 │   └── storage.js        # Data storage utilities
-├── web/
-│   └── index.html        # Web entry point
-└── dist/                 # Built web version
+├── _expo/                # Built web assets
+└── index.html            # Web entry point
 ```
 
 ## 🌐 Web Deployment
 
-This app is automatically deployed to GitHub Pages using GitHub Actions. The web version is available at:
+This app is deployed to GitHub Pages and available at:
 **https://laxma1996.github.io/Truck-Track/**
 
 ## 📦 Mobile App Distribution
