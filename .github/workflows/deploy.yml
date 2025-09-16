@@ -1,8 +1,9 @@
 name: Deploy to GitHub Pages
 
 on:
-  push:
-    branches: [ main, gh-pages ]
+  # Disabled - using static HTML files instead of Expo build
+  # push:
+  #   branches: [ main, gh-pages ]
   workflow_dispatch:
 
 permissions:
