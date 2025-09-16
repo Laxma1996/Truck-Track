@@ -34,7 +34,9 @@ jobs:
         run: npm install -g @expo/cli
 
       - name: Build web version
-        run: npx expo export --platform web
+        run: |
+          npx expo install --fix
+          npx expo export
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
