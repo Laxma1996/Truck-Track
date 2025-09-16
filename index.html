@@ -9,172 +9,28 @@
     <meta http-equiv="Expires" content="0" />
     <title>🚛 Truck Tracker App - Home</title>
     <style>
-        /* Reset and base styles */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        html, body {
-            height: 100%;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
-        
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            overflow-y: auto;
-        }
-        
-        .container {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        
-        .landing-content {
-            background: white;
-            border-radius: 24px;
-            padding: 50px;
-            text-align: center;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
-            max-width: 600px;
-            width: 100%;
-            animation: slideUp 0.8s ease-out;
-        }
-        
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .landing-logo {
-            font-size: 5rem;
-            margin-bottom: 20px;
-            animation: bounce 2s infinite;
-        }
-        
-        @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% {
-                transform: translateY(0);
-            }
-            40% {
-                transform: translateY(-10px);
-            }
-            60% {
-                transform: translateY(-5px);
-            }
-        }
-        
-        .landing-title {
-            color: #2c3e50;
-            margin-bottom: 15px;
-            font-size: 2.5rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .landing-subtitle {
-            color: #7f8c8d;
-            margin-bottom: 30px;
-            font-size: 1.1rem;
-            line-height: 1.6;
-        }
-        
-        .features {
-            text-align: left;
-            margin: 30px 0;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 15px;
-        }
-        
-        .features h3 {
-            color: #2c3e50;
-            margin-bottom: 15px;
-            text-align: center;
-            font-size: 1.3rem;
-        }
-        
-        .feature-list {
-            list-style: none;
-            padding: 0;
-        }
-        
-        .feature-list li {
-            padding: 8px 0;
-            color: #5a6c7d;
-            display: flex;
-            align-items: center;
-        }
-        
-        .feature-list li::before {
-            content: "✓";
-            color: #27ae60;
-            font-weight: bold;
-            margin-right: 10px;
-            font-size: 1.2rem;
-        }
-        
-        .nav-buttons {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-top: 30px;
-        }
-        
-        .nav-btn {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            padding: 15px 30px;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            font-size: 1.1rem;
-            font-weight: 600;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-            display: inline-block;
-        }
-        
-        .nav-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
-        }
-        
-        .nav-btn:active {
-            transform: translateY(0);
-        }
-        
-        .nav-btn.secondary {
-            background: linear-gradient(135deg, #27ae60, #2ecc71);
-            box-shadow: 0 8px 25px rgba(39, 174, 96, 0.3);
-        }
-        
-        .nav-btn.secondary:hover {
-            box-shadow: 0 12px 35px rgba(39, 174, 96, 0.4);
-        }
-        
-        .footer {
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid #e1e8ed;
-            color: #7f8c8d;
-            font-size: 0.9rem;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); overflow-y: auto; }
+        .container { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .landing-content { background: white; border-radius: 24px; padding: 50px; text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.15); max-width: 600px; width: 100%; animation: slideUp 0.8s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .landing-logo { font-size: 5rem; margin-bottom: 20px; animation: bounce 2s infinite; }
+        @keyframes bounce { 0%, 20%, 50%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-10px); } 60% { transform: translateY(-5px); } }
+        .landing-title { color: #2c3e50; margin-bottom: 15px; font-size: 2.5rem; font-weight: 700; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .landing-subtitle { color: #7f8c8d; margin-bottom: 30px; font-size: 1.1rem; line-height: 1.6; }
+        .features { text-align: left; margin: 30px 0; padding: 20px; background: #f8f9fa; border-radius: 15px; }
+        .features h3 { color: #2c3e50; margin-bottom: 15px; text-align: center; font-size: 1.3rem; }
+        .feature-list { list-style: none; padding: 0; }
+        .feature-list li { padding: 8px 0; color: #5a6c7d; display: flex; align-items: center; }
+        .feature-list li::before { content: "✓"; color: #27ae60; font-weight: bold; margin-right: 10px; font-size: 1.2rem; }
+        .nav-buttons { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin-top: 30px; }
+        .nav-btn { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 15px 30px; border: none; border-radius: 50px; cursor: pointer; font-size: 1.1rem; font-weight: 600; text-decoration: none; transition: all 0.3s ease; box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3); display: inline-block; }
+        .nav-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4); }
+        .nav-btn:active { transform: translateY(0); }
+        .nav-btn.secondary { background: linear-gradient(135deg, #27ae60, #2ecc71); box-shadow: 0 8px 25px rgba(39, 174, 96, 0.3); }
+        .nav-btn.secondary:hover { box-shadow: 0 12px 35px rgba(39, 174, 96, 0.4); }
+        .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #e1e8ed; color: #7f8c8d; font-size: 0.9rem; }
     </style>
 </head>
 <body>
@@ -211,20 +67,16 @@
     </div>
     
     <script>
-        // Check authentication status and update navigation
         function checkAuthAndUpdateNav() {
             const isAuthenticated = localStorage.getItem('truckTrackerAuth');
             const navButtons = document.getElementById('navButtons');
             
             if (isAuthenticated === 'true') {
-                // User is logged in, show different navigation
                 const currentUser = localStorage.getItem('truckTrackerUser');
                 navButtons.innerHTML = `
                     <a href="truck-logging.html" class="nav-btn secondary">🚛 Continue Logging</a>
                     <button class="nav-btn" onclick="logout()" style="background: linear-gradient(135deg, #e74c3c, #c0392b);">🚪 Logout</button>
                 `;
-                
-                // Update welcome message
                 const subtitle = document.querySelector('.landing-subtitle');
                 subtitle.innerHTML = `Welcome back, ${currentUser}! Continue with your truck logging tasks.`;
             }
@@ -232,17 +84,13 @@
         
         function logout() {
             if (confirm('Are you sure you want to logout?')) {
-                // Clear authentication data
                 localStorage.removeItem('truckTrackerAuth');
                 localStorage.removeItem('truckTrackerUser');
                 localStorage.removeItem('truckTrackerLoginTime');
-                
-                // Reload page to update navigation
                 window.location.reload();
             }
         }
         
-        // Check authentication on page load
         checkAuthAndUpdateNav();
     </script>
 </body>
