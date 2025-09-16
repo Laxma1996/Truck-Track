@@ -66,6 +66,16 @@
             backdrop-filter: blur(10px);
         }
         
+        .nav-btn button {
+            background: none;
+            border: none;
+            color: inherit;
+            font: inherit;
+            cursor: pointer;
+            padding: 0;
+            margin: 0;
+        }
+        
         .nav-btn:hover {
             background: rgba(255,255,255,0.3);
             border-color: rgba(255,255,255,0.5);
@@ -301,7 +311,6 @@
         
         <div class="nav-buttons">
             <a href="index.html" class="nav-btn">🏠 Home</a>
-            <a href="login.html" class="nav-btn">🔐 Login</a>
             <button class="nav-btn" onclick="logout()" style="background: linear-gradient(135deg, #e74c3c, #c0392b);">🚪 Logout</button>
         </div>
         
@@ -566,8 +575,11 @@
                 localStorage.removeItem('truckTrackerUser');
                 localStorage.removeItem('truckTrackerLoginTime');
                 
-                // Redirect to login page
-                window.location.href = 'login.html';
+                // Show logout message
+                alert('You have been logged out successfully!');
+                
+                // Redirect to home page
+                window.location.href = 'index.html';
             }
         }
         
@@ -586,4 +598,3 @@
     </script>
 </body>
 </html>
-
