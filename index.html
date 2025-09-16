@@ -172,6 +172,29 @@
             color: #7f8c8d;
             font-size: 0.9rem;
         }
+<<<<<<< HEAD
+=======
+        
+        .welcome-message {
+            background: linear-gradient(135deg, #e8f5e8, #f0f8f0);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border-left: 4px solid #27ae60;
+            text-align: center;
+        }
+        
+        .welcome-message h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .welcome-message p {
+            color: #34495e;
+            margin: 0;
+        }
+>>>>>>> e566c52
     </style>
 </head>
 <body>
@@ -179,7 +202,11 @@
         <div class="landing-content">
             <div class="landing-logo">🚛</div>
             <h1 class="landing-title">Truck Tracker</h1>
+<<<<<<< HEAD
             <p class="landing-subtitle">A modern React Native mobile application for truck logging and tracking, built with Expo.</p>
+=======
+            <p class="landing-subtitle">A modern React Native mobile application for truck logging and tracking, built with Expo. Track different truck types, record weights, capture photos, and manage job data efficiently.</p>
+>>>>>>> e566c52
             
             <div class="features">
                 <h3>✨ Features</h3>
@@ -224,6 +251,19 @@
                 // Update welcome message
                 const subtitle = document.querySelector('.landing-subtitle');
                 subtitle.innerHTML = `Welcome back, ${currentUser}! Continue with your truck logging tasks.`;
+<<<<<<< HEAD
+=======
+                
+                // Add welcome message
+                const features = document.querySelector('.features');
+                const welcomeDiv = document.createElement('div');
+                welcomeDiv.className = 'welcome-message';
+                welcomeDiv.innerHTML = `
+                    <h3>🎉 Welcome Back!</h3>
+                    <p>You're already logged in. Click "Continue Logging" to access your truck logging dashboard.</p>
+                `;
+                features.parentNode.insertBefore(welcomeDiv, features);
+>>>>>>> e566c52
             }
         }
         
