@@ -15,7 +15,7 @@ A modern React Native mobile application for truck logging and tracking, built w
 
 ## 🚀 Live Demo
 
-**Web Version**: [https://gnana151.github.io/truck-tracker/](https://gnana151.github.io/truck-tracker/)
+**Web Version**: [https://laxma1996.github.io/Truck-Track/](https://laxma1996.github.io/Truck-Track/)
 
 ## 🚀 Quick Start
 
@@ -87,7 +87,7 @@ truck-tracker/
 ## 🌐 Web Deployment
 
 This app is automatically deployed to GitHub Pages using GitHub Actions. The web version is available at:
-**https://gnana151.github.io/truck-tracker/**
+**https://laxma1996.github.io/Truck-Track/**
 
 ## 📦 Mobile App Distribution
 
