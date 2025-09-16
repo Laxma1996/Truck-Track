@@ -195,7 +195,7 @@
                 </ul>
             </div>
             
-            <div class="nav-buttons">
+            <div class="nav-buttons" id="navButtons">
                 <a href="login.html" class="nav-btn">🔐 Login</a>
                 <a href="truck-logging.html" class="nav-btn secondary">🚛 Start Logging</a>
             </div>
@@ -206,5 +206,41 @@
             </div>
         </div>
     </div>
+    
+    <script>
+        // Check authentication status and update navigation
+        function checkAuthAndUpdateNav() {
+            const isAuthenticated = localStorage.getItem('truckTrackerAuth');
+            const navButtons = document.getElementById('navButtons');
+            
+            if (isAuthenticated === 'true') {
+                // User is logged in, show different navigation
+                const currentUser = localStorage.getItem('truckTrackerUser');
+                navButtons.innerHTML = `
+                    <a href="truck-logging.html" class="nav-btn secondary">🚛 Continue Logging</a>
+                    <button class="nav-btn" onclick="logout()" style="background: linear-gradient(135deg, #e74c3c, #c0392b);">🚪 Logout</button>
+                `;
+                
+                // Update welcome message
+                const subtitle = document.querySelector('.landing-subtitle');
+                subtitle.innerHTML = `Welcome back, ${currentUser}! Continue with your truck logging tasks.`;
+            }
+        }
+        
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                // Clear authentication data
+                localStorage.removeItem('truckTrackerAuth');
+                localStorage.removeItem('truckTrackerUser');
+                localStorage.removeItem('truckTrackerLoginTime');
+                
+                // Reload page to update navigation
+                window.location.reload();
+            }
+        }
+        
+        // Check authentication on page load
+        checkAuthAndUpdateNav();
+    </script>
 </body>
 </html>

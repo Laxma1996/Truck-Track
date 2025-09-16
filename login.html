@@ -271,6 +271,11 @@
             
             // Check credentials
             if (username === 'admin' && password === 'password') {
+                // Set authentication session
+                localStorage.setItem('truckTrackerAuth', 'true');
+                localStorage.setItem('truckTrackerUser', username);
+                localStorage.setItem('truckTrackerLoginTime', new Date().toISOString());
+                
                 successMessage.style.display = 'block';
                 
                 // Redirect after 2 seconds
@@ -291,6 +296,18 @@
             document.getElementById('username').value = 'admin';
             document.getElementById('password').value = 'password';
         });
+        
+        // Check if user is already logged in
+        function checkAuthStatus() {
+            const isAuthenticated = localStorage.getItem('truckTrackerAuth');
+            if (isAuthenticated === 'true') {
+                // User is already logged in, redirect to truck logging
+                window.location.href = 'truck-logging.html';
+            }
+        }
+        
+        // Check authentication status on page load
+        checkAuthStatus();
     </script>
 </body>
 </html>
