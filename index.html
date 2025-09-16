@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-    <title>🚛 Truck Tracker App</title>
+    <title>🚛 Truck Tracker App - Home</title>
     <style>
         /* Reset and base styles */
         * {
@@ -19,28 +19,16 @@
         }
         
         body {
-            overflow: hidden;
-        }
-        
-        #root {
-            display: flex;
-            height: 100%;
-            flex: 1;
-        }
-        
-        /* Landing page styles */
-        .landing-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow-y: auto;
+        }
+        
+        .container {
+            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 9999;
-            overflow-y: auto;
+            padding: 20px;
         }
         
         .landing-content {
@@ -49,9 +37,8 @@
             padding: 50px;
             text-align: center;
             box-shadow: 0 25px 50px rgba(0,0,0,0.15);
-            max-width: 500px;
-            width: 90%;
-            margin: 20px;
+            max-width: 600px;
+            width: 100%;
             animation: slideUp 0.8s ease-out;
         }
         
@@ -137,111 +124,58 @@
             font-size: 1.2rem;
         }
         
-        .start-btn {
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+        
+        .nav-btn {
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
-            padding: 15px 40px;
+            padding: 15px 30px;
             border: none;
             border-radius: 50px;
             cursor: pointer;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             font-weight: 600;
-            margin-top: 20px;
+            text-decoration: none;
             transition: all 0.3s ease;
             box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            display: inline-block;
         }
         
-        .start-btn:hover {
+        .nav-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
         }
         
-        .start-btn:active {
+        .nav-btn:active {
             transform: translateY(0);
         }
         
-        /* Loading styles */
-        .loading-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
+        .nav-btn.secondary {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            box-shadow: 0 8px 25px rgba(39, 174, 96, 0.3);
         }
         
-        .loading-content {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            text-align: center;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            max-width: 400px;
-            width: 90%;
+        .nav-btn.secondary:hover {
+            box-shadow: 0 12px 35px rgba(39, 174, 96, 0.4);
         }
         
-        .loading-logo {
-            font-size: 4rem;
-            margin-bottom: 20px;
-        }
-        
-        .loading-title {
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 2rem;
-        }
-        
-        .loading-subtitle {
-            color: #666;
-            margin-bottom: 30px;
-        }
-        
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #4CAF50;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .error-message {
-            color: #e74c3c;
-            background: #fdf2f2;
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 20px;
-            display: none;
-        }
-        
-        .retry-btn {
-            background: #4CAF50;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 15px;
-        }
-        
-        .retry-btn:hover {
-            background: #45a049;
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e1e8ed;
+            color: #7f8c8d;
+            font-size: 0.9rem;
         }
     </style>
 </head>
 <body>
-    <!-- Landing page -->
-    <div class="landing-container" id="landingContainer">
+    <div class="container">
         <div class="landing-content">
             <div class="landing-logo">🚛</div>
             <h1 class="landing-title">Truck Tracker</h1>
@@ -261,76 +195,16 @@
                 </ul>
             </div>
             
-            <button class="start-btn" onclick="startApp()">Start Truck Tracker App</button>
-        </div>
-    </div>
-    
-    <!-- Loading screen -->
-    <div class="loading-container" id="loadingContainer" style="display: none;">
-        <div class="loading-content">
-            <div class="loading-logo">🚛</div>
-            <h1 class="loading-title">Truck Tracker</h1>
-            <p class="loading-subtitle">Loading your app...</p>
-            <div class="spinner"></div>
-            <div class="error-message" id="errorMessage">
-                <p>Failed to load the app. Please check your internet connection and try again.</p>
-                <button class="retry-btn" onclick="loadApp()">Retry</button>
+            <div class="nav-buttons">
+                <a href="login.html" class="nav-btn">🔐 Login</a>
+                <a href="truck-logging.html" class="nav-btn secondary">🚛 Start Logging</a>
+            </div>
+            
+            <div class="footer">
+                <p>Built with ❤️ using React Native and Expo</p>
+                <p>Live Demo: <a href="https://laxma1996.github.io/Truck-Track/" style="color: #667eea;">https://laxma1996.github.io/Truck-Track/</a></p>
             </div>
         </div>
     </div>
-    
-    <!-- App container -->
-    <div id="root"></div>
-    
-    <!-- Load the React app -->
-    <script>
-        function startApp() {
-            document.getElementById('landingContainer').style.display = 'none';
-            document.getElementById('loadingContainer').style.display = 'flex';
-            loadApp();
-        }
-        
-        function loadApp() {
-            const loadingContainer = document.getElementById('loadingContainer');
-            const errorMessage = document.getElementById('errorMessage');
-            
-            // Hide error message
-            errorMessage.style.display = 'none';
-            
-            // Create script element - try the new file first, fallback to old
-            const script = document.createElement('script');
-            script.src = 'app.js';
-            script.defer = true;
-            
-            // Success handler
-            script.onload = function() {
-                console.log('Truck Tracker App loaded successfully!');
-                loadingContainer.style.display = 'none';
-            };
-            
-            // Error handler - try fallback
-            script.onerror = function() {
-                console.log('Trying fallback JavaScript file...');
-                const fallbackScript = document.createElement('script');
-                fallbackScript.src = 'app.js';
-                fallbackScript.defer = true;
-                
-                fallbackScript.onload = function() {
-                    console.log('Truck Tracker App loaded with fallback!');
-                    loadingContainer.style.display = 'none';
-                };
-                
-                fallbackScript.onerror = function() {
-                    console.error('Failed to load Truck Tracker App');
-                    errorMessage.style.display = 'block';
-                };
-                
-                document.head.appendChild(fallbackScript);
-            };
-            
-            // Add script to head
-            document.head.appendChild(script);
-        }
-    </script>
 </body>
 </html>
