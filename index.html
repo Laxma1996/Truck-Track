@@ -157,10 +157,15 @@
             
             // Load the React app
             const script = document.createElement('script');
-            script.src = '/_expo/static/js/web/AppEntry-32c433723353aa50ab56c28b7c8d5e0e.js';
+            script.src = './_expo/static/js/web/AppEntry-32c433723353aa50ab56c28b7c8d5e0e.js';
             script.defer = true;
             script.onload = function() {
                 document.getElementById('loading').style.display = 'none';
+                console.log('Truck Tracker App loaded successfully!');
+            };
+            script.onerror = function() {
+                console.error('Failed to load Truck Tracker App');
+                document.getElementById('loading').innerHTML = '<p>Error loading app. Please refresh the page.</p>';
             };
             document.head.appendChild(script);
         }
