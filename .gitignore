@@ -8,7 +8,7 @@ node_modules/
 
 # Build outputs
 dist/
-_expo/
+# _expo/ - needed for web deployment
 
 # Logs
 *.log
