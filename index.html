@@ -1,37 +1,169 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="utf-8" />
     <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-    <title>Truck Tracker</title>
-    <!-- The `react-native-web` recommended style reset: https://necolas.github.io/react-native-web/docs/setup/#root-element -->
-    <style id="expo-reset">
-      /* These styles make the body full-height */
-      html,
-      body {
-        height: 100%;
-      }
-      /* These styles disable body scrolling if you are using <ScrollView> */
-      body {
-        overflow: hidden;
-      }
-      /* These styles make the root element full-height */
-      #root {
-        display: flex;
-        height: 100%;
-        flex: 1;
-      }
+    <title>🚛 Truck Tracker App</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+        .logo {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.2rem;
+        }
+        .features {
+            text-align: left;
+            margin: 30px 0;
+        }
+        .feature {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        .feature-icon {
+            font-size: 1.5rem;
+            margin-right: 15px;
+        }
+        .login-info {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .login-info h3 {
+            margin-top: 0;
+            color: #1976d2;
+        }
+        .start-btn {
+            background: #4CAF50;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            margin: 20px 0;
+            transition: background 0.3s;
+        }
+        .start-btn:hover {
+            background: #45a049;
+        }
+        .loading {
+            display: none;
+            margin-top: 20px;
+        }
     </style>
-  </head>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🚛</div>
+        <h1>Truck Tracker App</h1>
+        <p class="subtitle">Professional truck logging and tracking application</p>
+        
+        <div class="features">
+            <div class="feature">
+                <span class="feature-icon">🔐</span>
+                <span>Secure Login System</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">🚛</span>
+                <span>8 Different Truck Types</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">⚖️</span>
+                <span>Weight Recording & Validation</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">📸</span>
+                <span>Photo Capture & Upload</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">💾</span>
+                <span>Local Data Storage</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">🆔</span>
+                <span>Job Tracking System</span>
+            </div>
+        </div>
 
-  <body>
-    <!-- Use static rendering with Expo Router to support running without JavaScript. -->
-    <noscript>
-      You need to enable JavaScript to run this app.
-    </noscript>
-    <!-- The root element for your Expo app. -->
-    <div id="root"></div>
-  <script src="/_expo/static/js/web/AppEntry-32c433723353aa50ab56c28b7c8d5e0e.js" defer></script>
+        <div class="login-info">
+            <h3>Demo Login Credentials</h3>
+            <p><strong>Username:</strong> admin</p>
+            <p><strong>Password:</strong> password</p>
+        </div>
+
+        <button class="start-btn" onclick="loadApp()">Start Truck Tracker App</button>
+        
+        <div class="loading" id="loading">
+            <p>Loading app...</p>
+        </div>
+    </div>
+
+    <script>
+        function loadApp() {
+            document.getElementById('loading').style.display = 'block';
+            document.querySelector('.start-btn').style.display = 'none';
+            
+            // Create the app container
+            const appContainer = document.createElement('div');
+            appContainer.id = 'root';
+            appContainer.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                z-index: 1000;
+                background: white;
+            `;
+            
+            // Hide the intro container
+            document.querySelector('.container').style.display = 'none';
+            
+            // Add the app container to body
+            document.body.appendChild(appContainer);
+            
+            // Load the React app
+            const script = document.createElement('script');
+            script.src = '/_expo/static/js/web/AppEntry-32c433723353aa50ab56c28b7c8d5e0e.js';
+            script.defer = true;
+            script.onload = function() {
+                document.getElementById('loading').style.display = 'none';
+            };
+            document.head.appendChild(script);
+        }
+    </script>
 </body>
 </html>
