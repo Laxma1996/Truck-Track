@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test JavaScript Loading</title>
+</head>
+<body>
+    <h1>Testing JavaScript File Access</h1>
+    <div id="result"></div>
+    
+    <script>
+        // Test if the JavaScript file exists
+        fetch('_expo/static/js/web/AppEntry-b8e72a3750adfd40bd5fbaf0447acd22.js')
+            .then(response => {
+                if (response.ok) {
+                    document.getElementById('result').innerHTML = '✅ JavaScript file is accessible!';
+                } else {
+                    document.getElementById('result').innerHTML = '❌ JavaScript file not found (Status: ' + response.status + ')';
+                }
+            })
+            .catch(error => {
+                document.getElementById('result').innerHTML = '❌ Error: ' + error.message;
+            });
+    </script>
+</body>
+</html>

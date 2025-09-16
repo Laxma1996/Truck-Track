@@ -299,7 +299,7 @@
             
             // Create script element - try the new file first, fallback to old
             const script = document.createElement('script');
-            script.src = './_expo/static/js/web/AppEntry-b8e72a3750adfd40bd5fbaf0447acd22.js';
+            script.src = '_expo/static/js/web/AppEntry-b8e72a3750adfd40bd5fbaf0447acd22.js';
             script.defer = true;
             
             // Success handler
@@ -312,7 +312,7 @@
             script.onerror = function() {
                 console.log('Trying fallback JavaScript file...');
                 const fallbackScript = document.createElement('script');
-                fallbackScript.src = './_expo/static/js/web/AppEntry-32c433723353aa50ab56c28b7c8d5e0e.js';
+                fallbackScript.src = '_expo/static/js/web/AppEntry-32c433723353aa50ab56c28b7c8d5e0e.js';
                 fallbackScript.defer = true;
                 
                 fallbackScript.onload = function() {
