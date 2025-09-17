@@ -36,7 +36,8 @@
       ]
     },
     "web": {
-      "bundler": "metro"
+      "bundler": "metro",
+      "baseUrl": "/Truck-Track/"
     }
   }
 }

@@ -36,7 +36,11 @@ jobs:
       - name: Build web version
         run: |
           npx expo install --fix
-          npx expo export
+          npx expo export --platform web
+          
+      - name: Fix script paths for GitHub Pages
+        run: |
+          sed -i 's|src="/_expo/|src="./_expo/|g' dist/index.html
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

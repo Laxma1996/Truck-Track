@@ -7,6 +7,9 @@ git checkout main
 echo Step 2: Build the app
 npx expo export --platform web
 
+echo Step 2.1: Fix script paths for GitHub Pages
+powershell -Command "(Get-Content dist\index.html) -replace 'src=\"/_expo/', 'src=\"./_expo/' | Set-Content dist\index.html"
+
 echo Step 3: Copy built files
 xcopy /E /Y dist\* .
 
