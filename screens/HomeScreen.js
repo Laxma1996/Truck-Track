@@ -76,7 +76,7 @@ export default function HomeScreen({ navigation }) {
   ];
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContainer}>
       <View style={styles.centeredContainer}>
         <Card style={styles.landingCard}>
           <Card.Content>
@@ -131,7 +131,7 @@ export default function HomeScreen({ navigation }) {
           </Card.Content>
         </Card>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -140,11 +140,17 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#667eea',
   },
+  scrollContainer: {
+    flexGrow: 1,
+    minHeight: '100%',
+  },
   centeredContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
+    paddingTop: 40,
+    paddingBottom: 40,
   },
   landingCard: {
     width: '100%',
@@ -232,10 +238,11 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     marginBottom: 30,
     gap: 15,
+    paddingHorizontal: 10,
   },
   navButton: {
-    paddingHorizontal: 30,
-    paddingVertical: 15,
+    paddingHorizontal: 25,
+    paddingVertical: 18,
     borderRadius: 50,
     alignItems: 'center',
     shadowColor: '#000',
@@ -246,7 +253,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
-    minWidth: 150,
+    minWidth: 140,
+    minHeight: 50,
   },
   primaryButton: {
     backgroundColor: '#667eea',

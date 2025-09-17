@@ -200,7 +200,7 @@ export default function LoggingScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContainer}>
       <View style={styles.header}>
         <Text style={styles.title}>🚛 Truck Logging System</Text>
         <Text style={styles.subtitle}>Record truck details, weight, and photos for job tracking</Text>
@@ -410,7 +410,7 @@ export default function LoggingScreen({ navigation }) {
           </View>
         </View>
       </Modal>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -419,16 +419,21 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#667eea',
   },
+  scrollContainer: {
+    flexGrow: 1,
+    minHeight: '100%',
+  },
   header: {
     alignItems: 'center',
     padding: 30,
-    marginBottom: 30,
+    marginBottom: 20,
   },
   centeredContainer: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     alignItems: 'center',
     padding: 20,
+    paddingBottom: 40,
   },
   truckForm: {
     width: '100%',

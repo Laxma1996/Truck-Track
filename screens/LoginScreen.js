@@ -98,7 +98,7 @@ export default function LoginScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContainer}>
       <View style={styles.centeredContainer}>
         <Card style={styles.loginCard}>
           <Card.Content>
@@ -180,7 +180,7 @@ export default function LoginScreen({ navigation }) {
           </Card.Content>
         </Card>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -189,11 +189,17 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#667eea',
   },
+  scrollContainer: {
+    flexGrow: 1,
+    minHeight: '100%',
+  },
   centeredContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
+    paddingTop: 40,
+    paddingBottom: 40,
   },
   loginCard: {
     width: '100%',
