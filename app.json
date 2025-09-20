@@ -9,7 +9,7 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#f0f8ff"
+      "backgroundColor": "#f8f9fa"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -26,7 +26,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
-        "backgroundColor": "#f0f8ff"
+        "backgroundColor": "#f8f9fa"
       },
       "package": "com.trucktracker.app",
       "permissions": [

@@ -12,6 +12,8 @@ import {
 } from 'react-native';
 import { Card, Title, Paragraph } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
+import { authService, dbService } from '../services/firebaseService';
 
 export default function LoginScreen({ navigation }) {
   const [username, setUsername] = useState('');
@@ -21,7 +23,16 @@ export default function LoginScreen({ navigation }) {
 
   useEffect(() => {
     checkSessionStatus();
+    // Initialize database with default admin user
+    dbService.initializeDatabase();
   }, []);
+
+  // Refresh session status when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      checkSessionStatus();
+    }, [])
+  );
 
   const checkSessionStatus = async () => {
     try {
@@ -69,32 +80,33 @@ export default function LoginScreen({ navigation }) {
 
     setIsLoading(true);
 
-    // Simulate login process
-    setTimeout(async () => {
-      setIsLoading(false);
+    try {
+      // Validate credentials against Firebase
+      const result = await authService.validateUser(username, password);
       
-      // Simple authentication (in real app, this would be server-side)
-      if (username === 'admin' && password === 'password') {
-        try {
-          // Store authentication data in AsyncStorage
-          await AsyncStorage.multiSet([
-            ['truckTrackerAuth', 'true'],
-            ['truckTrackerUser', username],
-            ['truckTrackerLoginTime', new Date().toISOString()]
-          ]);
-          
-          console.log('Login successful, navigating to Logging screen');
-          setIsSessionActive(true);
-          navigation.navigate('Logging');
-        } catch (error) {
-          console.error('Error storing auth data:', error);
-          Alert.alert('Error', 'Failed to save login data');
-        }
+      if (result.success) {
+        // Store authentication data in AsyncStorage
+        await AsyncStorage.multiSet([
+          ['truckTrackerAuth', 'true'],
+          ['truckTrackerUser', result.user.username],
+          ['truckTrackerUserId', result.user.id],
+          ['truckTrackerUserRole', result.user.role],
+          ['truckTrackerLoginTime', new Date().toISOString()]
+        ]);
+        
+        console.log('Login successful, navigating to Logging screen');
+        setIsSessionActive(true);
+        navigation.navigate('Logging');
       } else {
-        console.log('Login failed: invalid credentials');
-        Alert.alert('Error', 'Invalid username or password');
+        console.log('Login failed:', result.message);
+        Alert.alert('Error', result.message);
       }
-    }, 1000);
+    } catch (error) {
+      console.error('Login error:', error);
+      Alert.alert('Error', 'Login failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -103,7 +115,6 @@ export default function LoginScreen({ navigation }) {
         <Card style={styles.loginCard}>
           <Card.Content>
             <View style={styles.header}>
-              <Text style={styles.logo}>🚛</Text>
               <Title style={styles.title}>Truck Tracker</Title>
               <Paragraph style={styles.subtitle}>
                 Please login to access the truck logging system
@@ -138,12 +149,12 @@ export default function LoginScreen({ navigation }) {
                 disabled={isLoading}
               >
                 <Text style={styles.loginButtonText}>
-                  {isLoading ? 'Logging in...' : '🔐 Login to Truck Tracker'}
+                  {isLoading ? 'Logging in...' : 'Login to Truck Tracker'}
                 </Text>
               </TouchableOpacity>
 
               <View style={styles.demoCredentials}>
-                <Text style={styles.demoTitle}>🔑 Demo Credentials</Text>
+                <Text style={styles.demoTitle}>Demo Credentials</Text>
                 <Text style={styles.demoText}>Username: admin</Text>
                 <Text style={styles.demoText}>Password: password</Text>
               </View>
@@ -173,7 +184,7 @@ export default function LoginScreen({ navigation }) {
                 disabled={!isSessionActive}
               >
                 <Text style={[styles.directAccessText, !isSessionActive && styles.directAccessTextDisabled]}>
-                  🚛 Direct Access {isSessionActive ? '(Active)' : '(Inactive)'}
+                  Direct Access {isSessionActive ? '(Active)' : '(Inactive)'}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -187,7 +198,7 @@ export default function LoginScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#667eea',
+    backgroundColor: '#f8f9fa',
   },
   scrollContainer: {
     flexGrow: 1,
@@ -204,35 +215,31 @@ const styles = StyleSheet.create({
   loginCard: {
     width: '100%',
     maxWidth: 500,
-    borderRadius: 24,
-    elevation: 8,
+    borderRadius: 8,
+    elevation: 2,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 4,
+      height: 2,
     },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
     backgroundColor: '#fff',
   },
   header: {
     alignItems: 'center',
     marginBottom: 40,
   },
-  logo: {
-    fontSize: 80,
-    marginBottom: 20,
-  },
   title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#2c3e50',
+    fontSize: 28,
+    fontWeight: '600',
+    color: '#1a1a1a',
     marginBottom: 10,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
-    color: '#7f8c8d',
+    color: '#666666',
     textAlign: 'center',
     lineHeight: 24,
   },
@@ -241,34 +248,34 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#2c3e50',
+    fontWeight: '500',
+    color: '#1a1a1a',
     marginBottom: 8,
     marginTop: 20,
   },
   input: {
-    borderWidth: 2,
-    borderColor: '#e1e8ed',
-    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    borderRadius: 6,
     padding: 15,
     fontSize: 16,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#ffffff',
     marginBottom: 10,
   },
   loginButton: {
-    backgroundColor: '#667eea',
+    backgroundColor: '#4a90e2',
     padding: 18,
-    borderRadius: 12,
+    borderRadius: 6,
     alignItems: 'center',
     marginTop: 20,
-    shadowColor: '#667eea',
+    shadowColor: '#4a90e2',
     shadowOffset: {
       width: 0,
-      height: 4,
+      height: 2,
     },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   loginButtonDisabled: {
     backgroundColor: '#bdc3c7',
@@ -276,58 +283,58 @@ const styles = StyleSheet.create({
   },
   loginButtonText: {
     color: '#fff',
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '500',
   },
   demoCredentials: {
-    backgroundColor: '#e8f5e8',
+    backgroundColor: '#f0f8ff',
     padding: 20,
-    borderRadius: 15,
+    borderRadius: 8,
     marginTop: 30,
     borderLeftWidth: 4,
-    borderLeftColor: '#27ae60',
+    borderLeftColor: '#4a90e2',
   },
   demoTitle: {
-    fontWeight: '700',
-    color: '#2c3e50',
+    fontWeight: '600',
+    color: '#1a1a1a',
     marginBottom: 15,
-    fontSize: 18,
+    fontSize: 16,
     textAlign: 'center',
   },
   demoText: {
-    color: '#34495e',
+    color: '#666666',
     fontFamily: 'monospace',
     marginBottom: 8,
     padding: 8,
     backgroundColor: 'white',
-    borderRadius: 8,
+    borderRadius: 4,
     borderWidth: 1,
-    borderColor: '#d5dbdb',
+    borderColor: '#d1d5db',
   },
   navLinks: {
     alignItems: 'center',
     marginTop: 30,
     paddingTop: 20,
     borderTopWidth: 1,
-    borderTopColor: '#e1e8ed',
+    borderTopColor: '#e1e5e9',
   },
   navLink: {
-    color: '#667eea',
+    color: '#4a90e2',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   directAccessButton: {
-    backgroundColor: '#27ae60',
+    backgroundColor: '#28a745',
     padding: 15,
-    borderRadius: 12,
+    borderRadius: 6,
     alignItems: 'center',
     marginTop: 10,
-    shadowColor: '#27ae60',
+    shadowColor: '#28a745',
     shadowOffset: {
       width: 0,
       height: 2,
     },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
   },
@@ -338,9 +345,9 @@ const styles = StyleSheet.create({
   directAccessText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   directAccessTextDisabled: {
-    color: '#7f8c8d',
+    color: '#666666',
   },
 });

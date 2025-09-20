@@ -1,0 +1,238 @@
+import { 
+  collection, 
+  doc, 
+  getDoc, 
+  getDocs, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc, 
+  query, 
+  where 
+} from 'firebase/firestore';
+import { db } from '../config/firebase';
+
+// Collection names
+const COLLECTIONS = {
+  USERS: 'users',
+  JOBS: 'jobs'
+};
+
+// User authentication service
+export const authService = {
+  // Validate user credentials against Firebase
+  async validateUser(username, password) {
+    try {
+      console.log('Validating user:', username);
+      console.log('Firebase config projectId:', db.app.options.projectId);
+      
+      // Query users collection for matching username
+      const usersRef = collection(db, COLLECTIONS.USERS);
+      const q = query(usersRef, where('username', '==', username));
+      const querySnapshot = await getDocs(q);
+      
+      console.log('Query executed, found documents:', querySnapshot.size);
+      
+      if (querySnapshot.empty) {
+        console.log('No user found with username:', username);
+        return { success: false, message: 'Invalid username or password' };
+      }
+      
+      // Get the first matching user document
+      const userDoc = querySnapshot.docs[0];
+      const userData = userDoc.data();
+      
+      console.log('User data retrieved:', { username: userData.username, hasPassword: !!userData.password });
+      
+      // Check if password matches
+      if (userData.password === password) {
+        console.log('User validated successfully:', username);
+        return { 
+          success: true, 
+          user: {
+            id: userDoc.id,
+            username: userData.username,
+            role: userData.role || 'user',
+            createdAt: userData.createdAt
+          }
+        };
+      } else {
+        console.log('Invalid password for user:', username);
+        return { success: false, message: 'Invalid username or password' };
+      }
+    } catch (error) {
+      console.error('Error validating user:', error);
+      console.error('Error details:', error.code, error.message);
+      return { success: false, message: `Authentication failed: ${error.message}` };
+    }
+  },
+
+  // Create a new user (for admin purposes)
+  async createUser(userData) {
+    try {
+      const usersRef = collection(db, COLLECTIONS.USERS);
+      const docRef = await addDoc(usersRef, {
+        ...userData,
+        createdAt: new Date().toISOString()
+      });
+      
+      console.log('User created with ID:', docRef.id);
+      return { success: true, userId: docRef.id };
+    } catch (error) {
+      console.error('Error creating user:', error);
+      return { success: false, message: 'Failed to create user' };
+    }
+  }
+};
+
+// Job management service
+export const jobService = {
+  // Save a new job to Firebase
+  async saveJob(jobData) {
+    try {
+      console.log('jobService.saveJob called with:', jobData);
+      
+      // Validate required fields before saving
+      const requiredFields = ['userId', 'username', 'activity', 'truckType', 'weight', 'photo'];
+      const missingFields = requiredFields.filter(field => !jobData[field] || jobData[field] === '');
+      
+      if (missingFields.length > 0) {
+        console.error('Missing required fields:', missingFields);
+        return { 
+          success: false, 
+          message: `Cannot save job: Missing required fields (${missingFields.join(', ')})` 
+        };
+      }
+
+      // Additional validation for specific fields
+      if (typeof jobData.weight !== 'number' || jobData.weight <= 0) {
+        return { 
+          success: false, 
+          message: 'Cannot save job: Weight must be a positive number' 
+        };
+      }
+
+      if (!jobData.photo.startsWith('data:image/') && !jobData.photo.startsWith('file://') && !jobData.photo.startsWith('http')) {
+        return { 
+          success: false, 
+          message: 'Cannot save job: Invalid photo format' 
+        };
+      }
+
+      console.log('Firebase db object:', db);
+      console.log('Collection name:', COLLECTIONS.JOBS);
+      
+      const jobsRef = collection(db, COLLECTIONS.JOBS);
+      console.log('Collection reference created:', jobsRef);
+      
+      const docRef = await addDoc(jobsRef, {
+        ...jobData,
+        createdAt: new Date().toISOString(),
+        status: 'active'
+      });
+      
+      console.log('Job saved with ID:', docRef.id);
+      return { success: true, jobId: docRef.id };
+    } catch (error) {
+      console.error('Error saving job:', error);
+      console.error('Error details:', error.code, error.message);
+      return { success: false, message: `Failed to save job: ${error.message}` };
+    }
+  },
+
+  // Get all jobs for a user
+  async getUserJobs(userId) {
+    try {
+      const jobsRef = collection(db, COLLECTIONS.JOBS);
+      const q = query(jobsRef, where('userId', '==', userId));
+      const querySnapshot = await getDocs(q);
+      
+      const jobs = [];
+      querySnapshot.forEach((doc) => {
+        jobs.push({
+          id: doc.id,
+          ...doc.data()
+        });
+      });
+      
+      return { success: true, jobs };
+    } catch (error) {
+      console.error('Error fetching user jobs:', error);
+      return { success: false, message: 'Failed to fetch jobs' };
+    }
+  },
+
+  // Update job status
+  async updateJobStatus(jobId, status) {
+    try {
+      const jobRef = doc(db, COLLECTIONS.JOBS, jobId);
+      await updateDoc(jobRef, {
+        status: status,
+        updatedAt: new Date().toISOString()
+      });
+      
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating job status:', error);
+      return { success: false, message: 'Failed to update job status' };
+    }
+  },
+
+  // Clean up incomplete jobs (jobs without photos)
+  async cleanupIncompleteJobs() {
+    try {
+      console.log('Cleaning up incomplete jobs...');
+      const jobsRef = collection(db, COLLECTIONS.JOBS);
+      const q = query(jobsRef, where('photo', '==', ''));
+      const querySnapshot = await getDocs(q);
+      
+      const deletePromises = [];
+      querySnapshot.forEach((doc) => {
+        console.log('Deleting incomplete job:', doc.id);
+        deletePromises.push(deleteDoc(doc.ref));
+      });
+      
+      await Promise.all(deletePromises);
+      console.log(`Cleaned up ${deletePromises.length} incomplete jobs`);
+      return { success: true, deletedCount: deletePromises.length };
+    } catch (error) {
+      console.error('Error cleaning up incomplete jobs:', error);
+      return { success: false, message: error.message };
+    }
+  }
+};
+
+// Database initialization service
+export const dbService = {
+  // Initialize database with default admin user
+  async initializeDatabase() {
+    try {
+      console.log('Initializing database...');
+      
+      // Check if admin user already exists
+      const usersRef = collection(db, COLLECTIONS.USERS);
+      const q = query(usersRef, where('username', '==', 'admin'));
+      const querySnapshot = await getDocs(q);
+      
+      if (querySnapshot.empty) {
+        // Create default admin user
+        const adminUser = {
+          username: 'admin',
+          password: 'password',
+          role: 'admin',
+          email: 'admin@trucktracker.com'
+        };
+        
+        const result = await authService.createUser(adminUser);
+        if (result.success) {
+          console.log('Default admin user created successfully');
+        } else {
+          console.error('Failed to create admin user:', result.message);
+        }
+      } else {
+        console.log('Admin user already exists');
+      }
+    } catch (error) {
+      console.error('Error initializing database:', error);
+    }
+  }
+};

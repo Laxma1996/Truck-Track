@@ -6,22 +6,29 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  TextInput,
+  Modal,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { Card, Title, Paragraph, Button } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
+import { authService, dbService } from '../services/firebaseService';
 
 export default function HomeScreen({ navigation }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUser, setCurrentUser] = useState('');
+  const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     checkAuthStatus();
+    // Initialize database
+    dbService.initializeDatabase();
   }, []);
 
-  // Refresh auth status when screen comes into focus
   useFocusEffect(
     React.useCallback(() => {
       checkAuthStatus();
@@ -36,253 +43,501 @@ export default function HomeScreen({ navigation }) {
       if (authStatus === 'true' && user) {
         setIsAuthenticated(true);
         setCurrentUser(user);
+      } else {
+        setIsAuthenticated(false);
+        setCurrentUser('');
       }
     } catch (error) {
       console.error('Error checking auth status:', error);
+      setIsAuthenticated(false);
+      setCurrentUser('');
     }
   };
 
-  const handleLogin = () => {
-    navigation.navigate('Login');
-  };
+  const handleLogin = async () => {
+    if (!username.trim() || !password.trim()) {
+      Alert.alert('Error', 'Please enter both username and password');
+      return;
+    }
 
-  const handleLogging = () => {
-    if (isAuthenticated) {
-      navigation.navigate('Logging');
-    } else {
-      Alert.alert(
-        'Login Required',
-        'Please login first to access the truck logging system.',
-        [
-          { 
-            text: 'OK', 
-            onPress: () => navigation.navigate('Login')
-          }
-        ]
-      );
+    setIsLoading(true);
+
+    try {
+      const result = await authService.validateUser(username, password);
+      
+      if (result.success) {
+        await AsyncStorage.multiSet([
+          ['truckTrackerAuth', 'true'],
+          ['truckTrackerUser', result.user.username],
+          ['truckTrackerUserId', result.user.id],
+          ['truckTrackerUserRole', result.user.role],
+          ['truckTrackerLoginTime', new Date().toISOString()]
+        ]);
+        
+        setIsAuthenticated(true);
+        setCurrentUser(result.user.username);
+        setIsLoginModalVisible(false);
+        setUsername('');
+        setPassword('');
+        
+        // Navigate to Dashboard
+        navigation.navigate('Dashboard');
+      } else {
+        Alert.alert('Error', result.message);
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      Alert.alert('Error', 'Login failed. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.multiRemove([
+        'truckTrackerAuth',
+        'truckTrackerUser',
+        'truckTrackerUserId',
+        'truckTrackerUserRole',
+        'truckTrackerLoginTime'
+      ]);
+      
+      setIsAuthenticated(false);
+      setCurrentUser('');
+      
+      // Force re-render to show unauthenticated state
+      setTimeout(() => {
+        checkAuthStatus();
+      }, 100);
+    } catch (error) {
+      console.error('Error during logout:', error);
+      Alert.alert('Error', 'Failed to logout properly');
+    }
+  };
 
-  const features = [
-    '🔐 Secure Login System',
-    '🚛 8 Different Truck Types',
-    '⚖️ Weight Recording & Validation',
-    '📸 Photo Capture & Gallery',
-    '💾 Local Data Storage',
-    '🆔 Unique Job Tracking',
-    '📱 Cross-Platform Support',
-    '🎨 Modern UI Design'
-  ];
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContainer}>
-      <View style={styles.centeredContainer}>
-        <Card style={styles.landingCard}>
-          <Card.Content>
+    <KeyboardAvoidingView 
+      style={styles.container} 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        {/* Header */}
             <View style={styles.header}>
-              <Text style={styles.logo}>🚛</Text>
-              <Title style={styles.title}>Truck Tracker</Title>
-              <Paragraph style={styles.subtitle}>
-                {isAuthenticated 
-                  ? `Welcome back, ${currentUser}! Continue with your truck logging tasks.`
-                  : 'A modern React Native mobile application for truck logging and tracking, built with Expo. Track different truck types, record weights, capture photos, and manage job data efficiently.'
-                }
-              </Paragraph>
-            </View>
+          <Text style={styles.title}>Truck Tracker</Text>
+          <Text style={styles.subtitle}>
+            Professional truck tracking and job management system
+          </Text>
+        </View>
 
-            {isAuthenticated && (
-              <View style={styles.welcomeMessage}>
-                <Text style={styles.welcomeTitle}>🎉 Welcome Back!</Text>
-                <Text style={styles.welcomeText}>
-                  You're already logged in. Click "Continue Logging" to access your truck logging dashboard.
+        {/* Main Content */}
+        <View style={styles.content}>
+          {/* Welcome Message */}
+          {isAuthenticated ? (
+            <View style={styles.welcomeCard}>
+              <Text style={styles.welcomeTitle}>Welcome back, {currentUser}!</Text>
+              <Text style={styles.welcomeText}>
+                You're logged in and ready to manage your truck jobs.
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.welcomeCard}>
+              <Text style={styles.welcomeTitle}>Welcome to Truck Tracker</Text>
+              <Text style={styles.welcomeText}>
+                Professional truck tracking and job management system. 
+                Login to access your dashboard and start managing jobs.
+              </Text>
+            </View>
+          )}
+
+          {/* Features */}
+          <View style={styles.featuresCard}>
+            <Text style={styles.featuresTitle}>Key Features</Text>
+            
+            <View style={styles.featureItem}>
+              <Text style={styles.featureIcon}>📊</Text>
+              <View style={styles.featureContent}>
+                <Text style={styles.featureTitle}>Job Dashboard</Text>
+                <Text style={styles.featureDescription}>
+                  View and manage all your truck jobs in one place
                 </Text>
               </View>
+            </View>
+
+            <View style={styles.featureItem}>
+              <Text style={styles.featureIcon}>📝</Text>
+              <View style={styles.featureContent}>
+                <Text style={styles.featureTitle}>Job Logging</Text>
+                <Text style={styles.featureDescription}>
+                  Create detailed job logs with photos and tracking
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.featureItem}>
+              <Text style={styles.featureIcon}>📄</Text>
+              <View style={styles.featureContent}>
+                <Text style={styles.featureTitle}>PDF Reports</Text>
+                <Text style={styles.featureDescription}>
+                  Generate professional PDF reports for each job
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.featureItem}>
+              <Text style={styles.featureIcon}>🔍</Text>
+              <View style={styles.featureContent}>
+                <Text style={styles.featureTitle}>Search & Filter</Text>
+                <Text style={styles.featureDescription}>
+                  Find jobs quickly with advanced search and filters
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Action Buttons */}
+          <View style={styles.actionButtons}>
+            {isAuthenticated ? (
+              <>
+                <TouchableOpacity 
+                  style={[styles.actionButton, styles.primaryButton]} 
+                  onPress={() => navigation.navigate('Dashboard')}
+                >
+                  <Text style={styles.actionButtonText}>Go to Dashboard</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={[styles.actionButton, styles.logoutButton]} 
+                  onPress={handleLogout}
+                >
+                  <Text style={styles.actionButtonText}>Logout</Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <>
+                <TouchableOpacity 
+                  style={[styles.actionButton, styles.primaryButton]} 
+                  onPress={() => setIsLoginModalVisible(true)}
+                >
+                  <Text style={styles.actionButtonText}>Login</Text>
+                </TouchableOpacity>
+                
+              </>
             )}
+          </View>
+        </View>
 
-            <View style={styles.features}>
-              <Text style={styles.featuresTitle}>✨ Features</Text>
-              {features.map((feature, index) => (
-                <View key={index} style={styles.featureItem}>
-                  <Text style={styles.featureText}>{feature}</Text>
+        {/* Footer */}
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>
+            Built with React Native and Expo
+          </Text>
+          <Text style={styles.footerSubtext}>
+            Professional Truck Tracking Solution
+          </Text>
+        </View>
+      </ScrollView>
+
+      {/* Login Modal */}
+      <Modal
+        visible={isLoginModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setIsLoginModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.loginModal}>
+            <Text style={styles.modalTitle}>Login to Dashboard</Text>
+            
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Username</Text>
+              <TextInput
+                style={styles.input}
+                value={username}
+                onChangeText={setUsername}
+                placeholder="Enter username"
+                placeholderTextColor="#9ca3af"
+                autoCapitalize="none"
+              />
+            </View>
+
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Password</Text>
+              <TextInput
+                style={styles.input}
+                value={password}
+                onChangeText={setPassword}
+                placeholder="Enter password"
+                placeholderTextColor="#9ca3af"
+                secureTextEntry
+              />
                 </View>
-              ))}
+
+            <View style={styles.demoCredentials}>
+              <Text style={styles.demoTitle}>Demo Credentials</Text>
+              <Text style={styles.demoText}>Username: admin</Text>
+              <Text style={styles.demoText}>Password: password</Text>
             </View>
 
-            <View style={styles.navButtons}>
+            <View style={styles.modalButtons}>
               <TouchableOpacity
-                style={[styles.navButton, styles.primaryButton]}
+                style={[styles.modalButton, styles.cancelModalButton]} 
+                onPress={() => {
+                  setIsLoginModalVisible(false);
+                  setUsername('');
+                  setPassword('');
+                }}
+              >
+                <Text style={styles.cancelModalButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[styles.modalButton, styles.loginModalButton]} 
                 onPress={handleLogin}
+                disabled={isLoading}
               >
-                <Text style={styles.navButtonText}>🔐 Login</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.navButton, styles.secondaryButton]}
-                onPress={handleLogging}
-              >
-                <Text style={styles.navButtonText}>🚛 Start Logging</Text>
+                <Text style={styles.loginModalButtonText}>
+                  {isLoading ? 'Logging in...' : 'Login'}
+                </Text>
               </TouchableOpacity>
             </View>
-
-            <View style={styles.footer}>
-              <Text style={styles.footerText}>Built with ❤️ using React Native and Expo</Text>
-              <Text style={styles.footerText}>Live Demo: https://laxma1996.github.io/Truck-Track/</Text>
             </View>
-          </Card.Content>
-        </Card>
       </View>
-    </ScrollView>
+      </Modal>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#667eea',
+    backgroundColor: '#f8f9fa',
   },
   scrollContainer: {
     flexGrow: 1,
-    minHeight: '100%',
-  },
-  centeredContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-    paddingTop: 40,
-    paddingBottom: 40,
-  },
-  landingCard: {
-    width: '100%',
-    maxWidth: 600,
-    borderRadius: 24,
-    elevation: 8,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    backgroundColor: '#fff',
   },
   header: {
     alignItems: 'center',
-    marginBottom: 30,
-  },
-  logo: {
-    fontSize: 80,
-    marginBottom: 20,
+    padding: 40,
+    paddingTop: 60,
+    backgroundColor: '#ffffff',
   },
   title: {
     fontSize: 32,
-    fontWeight: 'bold',
-    color: '#2c3e50',
-    marginBottom: 15,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    marginBottom: 12,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
-    color: '#7f8c8d',
+    color: '#666666',
     textAlign: 'center',
     lineHeight: 24,
-    marginBottom: 20,
   },
-  welcomeMessage: {
-    backgroundColor: '#e8f5e8',
-    padding: 20,
-    borderRadius: 15,
-    marginBottom: 30,
-    borderLeftWidth: 4,
-    borderLeftColor: '#27ae60',
+  content: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    alignItems: 'center',
+  },
+  welcomeCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 24,
+    marginBottom: 24,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    width: '100%',
+    maxWidth: 600,
   },
   welcomeTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#2c3e50',
-    marginBottom: 10,
-    textAlign: 'center',
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#1a1a1a',
+    marginBottom: 8,
   },
   welcomeText: {
-    fontSize: 14,
-    color: '#34495e',
-    textAlign: 'center',
-    lineHeight: 20,
+    fontSize: 16,
+    color: '#666666',
+    lineHeight: 24,
   },
-  features: {
-    marginBottom: 30,
-    padding: 20,
-    backgroundColor: '#f8f9fa',
-    borderRadius: 15,
+  featuresCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 24,
+    marginBottom: 24,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    width: '100%',
+    maxWidth: 600,
   },
   featuresTitle: {
-    textAlign: 'center',
-    marginBottom: 20,
-    color: '#2c3e50',
     fontSize: 20,
-    fontWeight: '700',
+    fontWeight: '600',
+    color: '#1a1a1a',
+    marginBottom: 20,
   },
   featureItem: {
     flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
+    alignItems: 'flex-start',
+    marginBottom: 20,
   },
-  featureText: {
+  featureIcon: {
+    fontSize: 24,
+    marginRight: 16,
+    marginTop: 2,
+  },
+  featureContent: {
+    flex: 1,
+  },
+  featureTitle: {
     fontSize: 16,
-    color: '#5a6c7d',
-    marginLeft: 10,
+    fontWeight: '600',
+    color: '#1a1a1a',
+    marginBottom: 4,
   },
-  navButtons: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    flexWrap: 'wrap',
-    marginBottom: 30,
-    gap: 15,
-    paddingHorizontal: 10,
+  featureDescription: {
+    fontSize: 14,
+    color: '#666666',
+    lineHeight: 20,
   },
-  navButton: {
-    paddingHorizontal: 25,
-    paddingVertical: 18,
-    borderRadius: 50,
+  actionButtons: {
+    gap: 12,
+    marginBottom: 20,
+    width: '100%',
+    maxWidth: 600,
+  },
+  actionButton: {
+    padding: 16,
+    borderRadius: 8,
     alignItems: 'center',
+    elevation: 2,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-    minWidth: 140,
-    minHeight: 50,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   primaryButton: {
-    backgroundColor: '#667eea',
-    shadowColor: '#667eea',
-  },
-  secondaryButton: {
-    backgroundColor: '#27ae60',
-    shadowColor: '#27ae60',
+    backgroundColor: '#4a90e2',
   },
   logoutButton: {
-    backgroundColor: '#e74c3c',
-    shadowColor: '#e74c3c',
+    backgroundColor: '#dc3545',
   },
-  navButtonText: {
-    color: '#fff',
-    fontSize: 18,
+  actionButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
     fontWeight: '600',
   },
   footer: {
     alignItems: 'center',
-    paddingTop: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#e1e8ed',
+    padding: 20,
+    paddingBottom: 40,
   },
   footerText: {
-    color: '#7f8c8d',
     fontSize: 14,
+    color: '#666666',
+    marginBottom: 4,
+  },
+  footerSubtext: {
+    fontSize: 12,
+    color: '#9ca3af',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  loginModal: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#1a1a1a',
+    marginBottom: 24,
     textAlign: 'center',
-    marginBottom: 5,
+  },
+  inputContainer: {
+    marginBottom: 20,
+  },
+  inputLabel: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#1a1a1a',
+    marginBottom: 8,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#e1e5e9',
+    borderRadius: 8,
+    padding: 16,
+    fontSize: 16,
+    backgroundColor: '#ffffff',
+  },
+  demoCredentials: {
+    backgroundColor: '#f0f8ff',
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 24,
+    borderLeftWidth: 4,
+    borderLeftColor: '#4a90e2',
+  },
+  demoTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1a1a1a',
+    marginBottom: 8,
+  },
+  demoText: {
+    fontSize: 14,
+    color: '#666666',
+    marginBottom: 4,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  modalButton: {
+    flex: 1,
+    padding: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  cancelModalButton: {
+    backgroundColor: '#f8f9fa',
+    borderWidth: 1,
+    borderColor: '#e1e5e9',
+  },
+  loginModalButton: {
+    backgroundColor: '#4a90e2',
+  },
+  cancelModalButtonText: {
+    color: '#666666',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  loginModalButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
