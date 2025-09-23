@@ -44,76 +44,45 @@
             -ms-overflow-style: none;
           }
       
-      /* Ensure proper flex behavior for scrolling */
-      .css-view-g5y9jx {
-        flex-basis: auto !important;
-        min-height: 0 !important;
-        overflow: visible !important;
-      }
+      /* Universal scrolling fixes - work across all React Native Web versions */
       
       /* Force proper flex behavior on all View components */
-      [class*="css-view-"] {
+      [class*="css-view-"], [class*="r-"] {
         flex-basis: auto !important;
         min-height: 0 !important;
-      }
-      
-      /* Specific fix for FlatList containers */
-      [class*="r-flex-"] {
-        flex-basis: auto !important;
-        min-height: 0 !important;
-      }
-      
-      /* Force scrolling behavior on scrollable containers */
-      [class*="r-overflowY-"] {
-        overflow-y: auto !important;
-        flex-basis: auto !important;
-        min-height: 0 !important;
-      }
-      
-      /* Ensure FlatList wrapper has proper height */
-      [class*="r-height-"] {
-        height: 100% !important;
-        flex-basis: auto !important;
-      }
-      
-      /* Specific fix for the jobs container classes you mentioned */
-      .r-alignItems-1awozwy.r-alignSelf-1kihuf0.r-flex-13awgt0.r-height-1pi2tsx.r-maxWidth-1sp8lnq.r-paddingInline-cxgwc0.r-paddingTop-1knelpx.r-width-13qz1uu {
-        flex-basis: auto !important;
-        min-height: 0 !important;
-        overflow: visible !important;
-      }
-      
-      /* Force scrolling on the FlatList wrapper */
-      .r-flex-13awgt0.r-height-1pi2tsx {
-        flex-basis: auto !important;
-        min-height: 0 !important;
-        overflow-y: auto !important;
-        max-height: calc(100vh - 200px) !important;
-      }
-      
-      /* Force scrolling on jobs container */
-      .r-alignItems-1awozwy.r-alignSelf-1kihuf0.r-flex-13awgt0.r-height-1pi2tsx.r-maxWidth-1sp8lnq.r-paddingInline-cxgwc0.r-paddingTop-1knelpx.r-width-13qz1uu {
-        flex-basis: auto !important;
-        min-height: 0 !important;
-        overflow: visible !important;
-        max-height: calc(100vh - 200px) !important;
-      }
-      
-      /* Force the inner scrollable area */
-      [class*="r-overflowY-"] {
-        overflow-y: auto !important;
-        flex-basis: auto !important;
-        min-height: 0 !important;
-        max-height: calc(100vh - 250px) !important;
-        height: auto !important;
-      }
-      
-      /* Nuclear option - force scrolling on all containers */
-      * {
         box-sizing: border-box !important;
       }
       
-      /* Force scrolling on the main container */
+      /* Force scrolling behavior on all scrollable containers */
+      [class*="r-overflowY-"], [class*="r-flex-"] {
+        overflow-y: auto !important;
+        flex-basis: auto !important;
+        min-height: 0 !important;
+        height: auto !important;
+      }
+      
+      /* Specific fixes for common React Native Web patterns */
+      [class*="r-flex-"] {
+        flex-basis: auto !important;
+        min-height: 0 !important;
+        overflow: visible !important;
+      }
+      
+      /* Force scrolling on containers with height classes */
+      [class*="r-height-"] {
+        height: 100% !important;
+        flex-basis: auto !important;
+        min-height: 0 !important;
+      }
+      
+      /* Universal container fixes */
+      div[class*="r-"] {
+        flex-basis: auto !important;
+        min-height: 0 !important;
+        box-sizing: border-box !important;
+      }
+      
+      /* Force scrolling on main content areas */
       #root > div {
         height: 100vh !important;
         overflow: hidden !important;
@@ -121,22 +90,65 @@
         max-height: 100vh !important;
       }
       
-      /* Ensure proper container constraints */
-      .css-view-g5y9jx {
-        max-width: 100% !important;
-      }
-      
-      /* Force the jobs area to scroll */
-      [class*="r-flex-13awgt0"] {
-        overflow-y: auto !important;
-        height: auto !important;
+      /* Ensure all flex containers can scroll */
+      [style*="flex"] {
         flex-basis: auto !important;
+        min-height: 0 !important;
       }
       
-      /* Hide scrollbars for jobs area too */
-      [class*="r-flex-13awgt0"]::-webkit-scrollbar {
+      /* Force scrolling on any element with overflow classes */
+      [class*="overflow"] {
+        overflow-y: auto !important;
+        flex-basis: auto !important;
+        min-height: 0 !important;
+      }
+      
+      /* Additional safety net for scrolling */
+      .r-flex-1, [class*="r-flex-1"] {
+        flex: 1 !important;
+        flex-basis: auto !important;
+        min-height: 0 !important;
+        overflow-y: auto !important;
+      }
+      
+      /* Hide scrollbars universally */
+      [class*="r-"]::-webkit-scrollbar,
+      [class*="css-"]::-webkit-scrollbar {
         width: 0px;
         background: transparent;
+      }
+      
+      /* Specific fixes for Dashboard scrolling */
+      /* Target any container that might hold the jobs list */
+      div[class*="r-"]:has([class*="r-flex-"]) {
+        overflow-y: auto !important;
+        flex-basis: auto !important;
+        min-height: 0 !important;
+        max-height: calc(100vh - 200px) !important;
+      }
+      
+      /* Force scrolling on any element that contains job cards */
+      [class*="r-"]:has(> div[class*="r-"]) {
+        overflow-y: auto !important;
+        flex-basis: auto !important;
+        min-height: 0 !important;
+      }
+      
+      /* Additional deployment-safe scrolling fixes */
+      @media screen and (min-width: 768px) {
+        /* Desktop specific fixes */
+        [class*="r-flex-"] {
+          max-height: calc(100vh - 150px) !important;
+          overflow-y: auto !important;
+        }
+      }
+      
+      @media screen and (max-width: 767px) {
+        /* Mobile specific fixes */
+        [class*="r-flex-"] {
+          max-height: calc(100vh - 200px) !important;
+          overflow-y: auto !important;
+        }
       }
     </style>
   </head>

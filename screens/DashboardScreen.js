@@ -965,6 +965,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
     paddingTop: spacing.base,
     flexGrow: 1,
+    // Force scrolling in case CSS overrides don't work
+    ...(Platform.OS === 'web' && {
+      maxHeight: 'calc(100vh - 200px)',
+      overflowY: 'auto',
+      flexBasis: 'auto',
+      minHeight: 0,
+    }),
   },
   loadingContainer: {
     flex: 1,
@@ -1114,6 +1121,12 @@ const styles = StyleSheet.create({
     overflowY: 'auto',
     overflowX: 'hidden',
     WebkitOverflowScrolling: 'touch',
+    // Additional deployment-safe scrolling
+    ...(Platform.OS === 'web' && {
+      maxHeight: 'calc(100vh - 200px)',
+      flexBasis: 'auto',
+      minHeight: 0,
+    }),
   },
   flatListStyle: {
     flex: 1,
@@ -1459,8 +1472,8 @@ const styles = StyleSheet.create({
     textShadowRadius: 2,
   },
   editButton: {
-    backgroundColor: '#28a745',
-    borderColor: '#1e7e34',
+    backgroundColor: '#ff6b35',
+    borderColor: '#e55a2b',
     borderWidth: 2,
   },
   finishButton: {
