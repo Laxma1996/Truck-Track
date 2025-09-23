@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>Truck Tracker</title>
+    <style>
+      html, body, #root {
+        height: 100vh;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+      }
+      #root {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        min-height: 100vh;
+      }
+      /* Ensure proper scrolling */
+      * {
+        box-sizing: border-box;
+      }
+      /* Force full height for React Native Web */
+      .react-native-web {
+        height: 100vh !important;
+        min-height: 100vh !important;
+      }
+      
+          /* Hide scrollbars but keep scroll functionality */
+          ::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+          }
+          
+          /* For Firefox */
+          * {
+            scrollbar-width: none;
+          }
+          
+          /* For IE and Edge */
+          * {
+            -ms-overflow-style: none;
+          }
+      
+      /* Ensure proper flex behavior for scrolling */
+      .css-view-g5y9jx {
+        flex-basis: auto !important;
+        min-height: 0 !important;
+        overflow: visible !important;
+      }
+      
+      /* Force proper flex behavior on all View components */
+      [class*="css-view-"] {
+        flex-basis: auto !important;
+        min-height: 0 !important;
+      }
+      
+      /* Specific fix for FlatList containers */
+      [class*="r-flex-"] {
+        flex-basis: auto !important;
+        min-height: 0 !important;
+      }
+      
+      /* Force scrolling behavior on scrollable containers */
+      [class*="r-overflowY-"] {
+        overflow-y: auto !important;
+        flex-basis: auto !important;
+        min-height: 0 !important;
+      }
+      
+      /* Ensure FlatList wrapper has proper height */
+      [class*="r-height-"] {
+        height: 100% !important;
+        flex-basis: auto !important;
+      }
+      
+      /* Specific fix for the jobs container classes you mentioned */
+      .r-alignItems-1awozwy.r-alignSelf-1kihuf0.r-flex-13awgt0.r-height-1pi2tsx.r-maxWidth-1sp8lnq.r-paddingInline-cxgwc0.r-paddingTop-1knelpx.r-width-13qz1uu {
+        flex-basis: auto !important;
+        min-height: 0 !important;
+        overflow: visible !important;
+      }
+      
+      /* Force scrolling on the FlatList wrapper */
+      .r-flex-13awgt0.r-height-1pi2tsx {
+        flex-basis: auto !important;
+        min-height: 0 !important;
+        overflow-y: auto !important;
+        max-height: calc(100vh - 200px) !important;
+      }
+      
+      /* Force scrolling on jobs container */
+      .r-alignItems-1awozwy.r-alignSelf-1kihuf0.r-flex-13awgt0.r-height-1pi2tsx.r-maxWidth-1sp8lnq.r-paddingInline-cxgwc0.r-paddingTop-1knelpx.r-width-13qz1uu {
+        flex-basis: auto !important;
+        min-height: 0 !important;
+        overflow: visible !important;
+        max-height: calc(100vh - 200px) !important;
+      }
+      
+      /* Force the inner scrollable area */
+      [class*="r-overflowY-"] {
+        overflow-y: auto !important;
+        flex-basis: auto !important;
+        min-height: 0 !important;
+        max-height: calc(100vh - 250px) !important;
+        height: auto !important;
+      }
+      
+      /* Nuclear option - force scrolling on all containers */
+      * {
+        box-sizing: border-box !important;
+      }
+      
+      /* Force scrolling on the main container */
+      #root > div {
+        height: 100vh !important;
+        overflow: hidden !important;
+        max-width: 100vw !important;
+        max-height: 100vh !important;
+      }
+      
+      /* Ensure proper container constraints */
+      .css-view-g5y9jx {
+        max-width: 100% !important;
+      }
+      
+      /* Force the jobs area to scroll */
+      [class*="r-flex-13awgt0"] {
+        overflow-y: auto !important;
+        height: auto !important;
+        flex-basis: auto !important;
+      }
+      
+      /* Hide scrollbars for jobs area too */
+      [class*="r-flex-13awgt0"]::-webkit-scrollbar {
+        width: 0px;
+        background: transparent;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>

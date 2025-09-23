@@ -164,16 +164,45 @@ export const jobService = {
   // Update job status
   async updateJobStatus(jobId, status) {
     try {
+      console.log('updateJobStatus called with:', jobId, status);
+      const jobRef = doc(db, COLLECTIONS.JOBS, jobId);
+      console.log('Job reference created:', jobRef);
+      
+      const updateData = {
+        status: status,
+        updatedAt: new Date().toISOString()
+      };
+      
+      // Add endDateTime for finished or deleted jobs
+      if (status === 'finished' || status === 'deleted') {
+        updateData.endDateTime = new Date().toISOString();
+      }
+      
+      console.log('Update data:', updateData);
+      await updateDoc(jobRef, updateData);
+      console.log('Document updated successfully');
+      
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating job status:', error);
+      console.error('Error details:', error.code, error.message);
+      return { success: false, message: `Failed to update job status: ${error.message}` };
+    }
+  },
+
+  // Update job details
+  async updateJob(jobId, jobData) {
+    try {
       const jobRef = doc(db, COLLECTIONS.JOBS, jobId);
       await updateDoc(jobRef, {
-        status: status,
+        ...jobData,
         updatedAt: new Date().toISOString()
       });
       
       return { success: true };
     } catch (error) {
-      console.error('Error updating job status:', error);
-      return { success: false, message: 'Failed to update job status' };
+      console.error('Error updating job:', error);
+      return { success: false, message: 'Failed to update job' };
     }
   },
 
@@ -233,6 +262,49 @@ export const dbService = {
       }
     } catch (error) {
       console.error('Error initializing database:', error);
+    }
+  },
+
+  // Get all documents from a collection
+  async getCollection(collectionName) {
+    try {
+      const collectionRef = collection(db, collectionName);
+      const querySnapshot = await getDocs(collectionRef);
+      const data = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      return { success: true, data };
+    } catch (error) {
+      console.error(`Error getting ${collectionName} collection:`, error);
+      return { success: false, message: error.message };
+    }
+  },
+
+  // Delete a document
+  async deleteDocument(collectionName, docId) {
+    try {
+      const docRef = doc(db, collectionName, docId);
+      await deleteDoc(docRef);
+      return { success: true };
+    } catch (error) {
+      console.error(`Error deleting document from ${collectionName}:`, error);
+      return { success: false, message: error.message };
+    }
+  },
+
+  // Update a document
+  async updateDocument(collectionName, docId, data) {
+    try {
+      const docRef = doc(db, collectionName, docId);
+      await updateDoc(docRef, {
+        ...data,
+        updatedAt: new Date().toISOString()
+      });
+      return { success: true };
+    } catch (error) {
+      console.error(`Error updating document in ${collectionName}:`, error);
+      return { success: false, message: error.message };
     }
   }
 };
