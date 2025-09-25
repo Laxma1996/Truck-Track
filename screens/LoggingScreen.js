@@ -27,7 +27,10 @@ import {
   colors, 
   shadows, 
   borderRadius,
-  scrollConfig 
+  scrollConfig,
+  getResponsiveValue,
+  getResponsivePixels,
+  getResponsiveShadows
 } from '../utils/responsive';
 
 export default function LoggingScreen({ navigation }) {
