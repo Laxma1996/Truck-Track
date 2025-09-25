@@ -89,19 +89,29 @@ export const jobService = {
   // Save a new job to Firebase
   async saveJob(jobData) {
     try {
-      console.log('jobService.saveJob called with:', jobData);
+      console.log('🔥 jobService.saveJob called with:', {
+        userId: jobData.userId,
+        username: jobData.username,
+        activity: jobData.activity,
+        truckType: jobData.truckType,
+        weight: jobData.weight,
+        photoLength: jobData.photo ? jobData.photo.length : 0,
+        photoPreview: jobData.photo ? jobData.photo.substring(0, 50) + '...' : 'null'
+      });
       
       // Validate required fields before saving
       const requiredFields = ['userId', 'username', 'activity', 'truckType', 'weight', 'photo'];
       const missingFields = requiredFields.filter(field => !jobData[field] || jobData[field] === '');
       
       if (missingFields.length > 0) {
-        console.error('Missing required fields:', missingFields);
+        console.error('❌ Missing required fields:', missingFields);
         return { 
           success: false, 
           message: `Cannot save job: Missing required fields (${missingFields.join(', ')})` 
         };
       }
+      
+      console.log('✅ All required fields present');
 
       // Additional validation for specific fields
       if (typeof jobData.weight !== 'number' || jobData.weight <= 0) {
@@ -126,23 +136,40 @@ export const jobService = {
         };
       }
 
-      console.log('Firebase db object:', db);
-      console.log('Collection name:', COLLECTIONS.JOBS);
+      console.log('🔥 Firebase db object:', db);
+      console.log('📁 Collection name:', COLLECTIONS.JOBS);
       
       const jobsRef = collection(db, COLLECTIONS.JOBS);
-      console.log('Collection reference created:', jobsRef);
+      console.log('📂 Collection reference created:', jobsRef);
       
-      const docRef = await addDoc(jobsRef, {
+      const jobDocument = {
         ...jobData,
         createdAt: new Date().toISOString(),
         status: 'active'
+      };
+      
+      console.log('📄 Document to save:', {
+        userId: jobDocument.userId,
+        username: jobDocument.username,
+        activity: jobDocument.activity,
+        truckType: jobDocument.truckType,
+        weight: jobDocument.weight,
+        photoLength: jobDocument.photo ? jobDocument.photo.length : 0,
+        status: jobDocument.status,
+        createdAt: jobDocument.createdAt
       });
       
-      console.log('Job saved with ID:', docRef.id);
+      const docRef = await addDoc(jobsRef, jobDocument);
+      
+      console.log('✅ Job saved with ID:', docRef.id);
       return { success: true, jobId: docRef.id };
     } catch (error) {
-      console.error('Error saving job:', error);
-      console.error('Error details:', error.code, error.message);
+      console.error('💥 Error saving job:', error);
+      console.error('Error details:', {
+        code: error.code,
+        message: error.message,
+        stack: error.stack
+      });
       return { success: false, message: `Failed to save job: ${error.message}` };
     }
   },
@@ -150,24 +177,48 @@ export const jobService = {
   // Get all jobs for a user
   async getUserJobs(userId) {
     try {
+      console.log('🔍 getUserJobs called with userId:', userId);
+      
       const jobsRef = collection(db, COLLECTIONS.JOBS);
+      console.log('📁 Jobs collection reference:', jobsRef);
+      
       const q = query(jobsRef, where('userId', '==', userId));
+      console.log('🔎 Query created:', q);
+      
       const querySnapshot = await getDocs(q);
+      console.log('📊 Query executed, found documents:', querySnapshot.size);
       
       const jobs = [];
       querySnapshot.forEach((doc) => {
-        jobs.push({
+        const jobData = {
           id: doc.id,
           ...doc.data()
+        };
+        console.log('📄 Job document:', {
+          id: jobData.id,
+          userId: jobData.userId,
+          activity: jobData.activity,
+          truckType: jobData.truckType,
+          weight: jobData.weight,
+          status: jobData.status,
+          createdAt: jobData.createdAt
         });
+        jobs.push(jobData);
       });
       
+      console.log('✅ Total jobs found:', jobs.length);
       return { success: true, jobs };
     } catch (error) {
-      console.error('Error fetching user jobs:', error);
+      console.error('💥 Error fetching user jobs:', error);
+      console.error('Error details:', {
+        code: error.code,
+        message: error.message,
+        stack: error.stack
+      });
       return { success: false, message: 'Failed to fetch jobs' };
     }
   },
+
 
   // Update job status
   async updateJobStatus(jobId, status) {
@@ -235,7 +286,8 @@ export const jobService = {
       console.error('Error cleaning up incomplete jobs:', error);
       return { success: false, message: error.message };
     }
-  }
+  },
+
 };
 
 // Database initialization service
