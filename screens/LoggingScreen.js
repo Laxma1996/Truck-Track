@@ -145,13 +145,23 @@ export default function LoggingScreen({ navigation }) {
         allowsEditing: true,
         aspect: [4, 3],
         quality: 0.8,
+        base64: true, // This is important for web compatibility
       });
 
-      if (!result.canceled) {
-        setPhoto(result.assets[0]);
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const photoAsset = result.assets[0];
+        console.log('Photo captured:', {
+          uri: photoAsset.uri,
+          hasBase64: !!photoAsset.base64,
+          width: photoAsset.width,
+          height: photoAsset.height
+        });
+        
+        setPhoto(photoAsset);
         Alert.alert('Success', 'Photo captured successfully!');
       }
     } catch (error) {
+      console.error('Error taking photo:', error);
       Alert.alert('Error', 'Failed to take photo: ' + error.message);
     }
   };
@@ -170,13 +180,23 @@ export default function LoggingScreen({ navigation }) {
         allowsEditing: true,
         aspect: [4, 3],
         quality: 0.8,
+        base64: true, // This is important for web compatibility
       });
 
-      if (!result.canceled) {
-        setPhoto(result.assets[0]);
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const photoAsset = result.assets[0];
+        console.log('Photo selected:', {
+          uri: photoAsset.uri,
+          hasBase64: !!photoAsset.base64,
+          width: photoAsset.width,
+          height: photoAsset.height
+        });
+        
+        setPhoto(photoAsset);
         Alert.alert('Success', 'Photo selected successfully!');
       }
     } catch (error) {
+      console.error('Error selecting photo:', error);
       Alert.alert('Error', 'Failed to select photo: ' + error.message);
     }
   };
@@ -211,13 +231,28 @@ export default function LoggingScreen({ navigation }) {
       return;
     }
 
+    console.log('Photo validation - photo object:', {
+      hasPhoto: !!photo,
+      hasUri: !!photo.uri,
+      hasBase64: !!photo.base64,
+      uriType: photo.uri ? typeof photo.uri : 'undefined',
+      uriLength: photo.uri ? photo.uri.length : 0
+    });
+
     if (!photo.uri || photo.uri.trim() === '') {
       Alert.alert('Validation Error', 'Photo is invalid. Please take a new photo of the truck');
       return;
     }
 
-    // Additional validation for photo URI format
-    if (!photo.uri.startsWith('data:image/') && !photo.uri.startsWith('file://') && !photo.uri.startsWith('http')) {
+    // More flexible photo URI validation - accept various formats
+    const isValidPhotoFormat = photo.uri.startsWith('data:image/') || 
+                              photo.uri.startsWith('file://') || 
+                              photo.uri.startsWith('http') ||
+                              photo.uri.startsWith('blob:') ||
+                              photo.base64; // Accept if base64 is available
+
+    if (!isValidPhotoFormat) {
+      console.log('Invalid photo format:', photo.uri);
       Alert.alert('Validation Error', 'Photo format is not supported. Please take a new photo');
       return;
     }
@@ -261,13 +296,29 @@ export default function LoggingScreen({ navigation }) {
         return;
       }
 
+      // Prepare photo data - use base64 if available, otherwise use URI
+      let photoData = photo.uri;
+      if (photo.base64) {
+        // Create a proper data URL with base64
+        photoData = `data:image/jpeg;base64,${photo.base64}`;
+      } else if (photo.uri && !photo.uri.startsWith('data:image/')) {
+        // If we have a URI but no base64, try to use the URI as is
+        photoData = photo.uri;
+      }
+
+      console.log('Photo data prepared:', {
+        originalUri: photo.uri,
+        hasBase64: !!photo.base64,
+        finalPhotoData: photoData ? photoData.substring(0, 50) + '...' : 'null'
+      });
+
       const jobData = {
         userId: userId,
         username: username,
         activity: activity.trim(),
         truckType: truckType.trim(),
         weight: weightNumber,
-        photo: photo.uri, // Store as base64 data URL
+        photo: photoData, // Store as base64 data URL or URI
         status: 'started',
         startTime: new Date().toISOString()
       };

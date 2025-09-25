@@ -111,7 +111,15 @@ export const jobService = {
         };
       }
 
-      if (!jobData.photo.startsWith('data:image/') && !jobData.photo.startsWith('file://') && !jobData.photo.startsWith('http')) {
+      // More flexible photo validation - accept various formats
+      const isValidPhotoFormat = jobData.photo.startsWith('data:image/') || 
+                                jobData.photo.startsWith('file://') || 
+                                jobData.photo.startsWith('http') ||
+                                jobData.photo.startsWith('blob:') ||
+                                (typeof jobData.photo === 'string' && jobData.photo.length > 0);
+
+      if (!isValidPhotoFormat) {
+        console.error('Invalid photo format:', jobData.photo ? jobData.photo.substring(0, 50) + '...' : 'null');
         return { 
           success: false, 
           message: 'Cannot save job: Invalid photo format' 
