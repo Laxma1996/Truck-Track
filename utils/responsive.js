@@ -96,7 +96,6 @@ export const getResponsiveMargins = () => {
 export const cardDimensions = {
   width: isMobile ? '100%' : isTablet ? '90%' : '80%',
   maxWidth: isMobile ? 400 : isTablet ? 600 : 800,
-  minHeight: isMobile ? 200 : 250,
   padding: isMobile ? 16 : isTablet ? 20 : 24,
 };
 
@@ -121,7 +120,6 @@ export const inputDimensions = {
 export const modalDimensions = {
   width: isMobile ? '95%' : isTablet ? '85%' : '70%',
   maxWidth: isMobile ? 400 : isTablet ? 600 : 800,
-  maxHeight: isMobile ? '90%' : '80%',
   padding: isMobile ? 20 : isTablet ? 24 : 32,
 };
 

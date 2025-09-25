@@ -443,7 +443,7 @@ export default function LoggingScreen({ navigation }) {
             <div class="section-title">Truck Photo</div>
             <div class="photo-section">
               ${savedJobData.photo ? 
-                `<img src="${savedJobData.photo}" style="max-width: 100%; max-height: 300px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" alt="Truck Photo" />` : 
+                `<img src="${savedJobData.photo}" style="max-width: 100%; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" alt="Truck Photo" />` : 
                 `<div class="photo-placeholder">No photo available</div>`
               }
             </div>
@@ -823,7 +823,6 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     margin: spacing.base,
     ...shadows.lg,
-    minHeight: responsiveDimensions.isMobile ? 400 : 450,
     maxWidth: cardDimensions.maxWidth,
     borderWidth: 1,
     borderColor: colors.border.light,
@@ -844,7 +843,6 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.sm,
     marginHorizontal: responsiveDimensions.isMobile ? 0 : spacing.sm,
     ...shadows.base,
-    minHeight: buttonDimensions.height,
     flex: responsiveDimensions.isMobile ? 0 : 1,
   },
   logoutButton: {
@@ -897,7 +895,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background.primary,
     paddingHorizontal: inputDimensions.paddingHorizontal,
     paddingVertical: inputDimensions.paddingVertical,
-    minHeight: inputDimensions.height + 10,
     ...shadows.sm,
   },
   dropdownText: {
@@ -924,7 +921,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.base,
     fontSize: fontSizes.base,
     backgroundColor: colors.background.primary,
-    minHeight: 44,
     ...shadows.sm,
   },
   photoButton: {
@@ -935,7 +931,6 @@ const styles = StyleSheet.create({
     padding: spacing.base,
     alignItems: 'center',
     backgroundColor: colors.primaryLight + '10',
-    minHeight: responsiveDimensions.isMobile ? 80 : 100,
     ...shadows.sm,
   },
   photoButtonText: {
@@ -972,7 +967,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: spacing.base,
     ...shadows.lg,
-    minHeight: 48,
   },
   startButtonDisabled: {
     backgroundColor: colors.gray[400],
@@ -1013,7 +1007,6 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     borderWidth: 1,
     borderColor: colors.border.light,
-    minHeight: buttonDimensions.height,
   },
   modalButtonText: {
     color: colors.text.primary,
@@ -1078,7 +1071,6 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.base,
     alignItems: 'center',
     ...shadows.base,
-    minHeight: buttonDimensions.height,
   },
   pdfButton: {
     backgroundColor: colors.primary,
@@ -1104,7 +1096,6 @@ const styles = StyleSheet.create({
     padding: modalDimensions.padding,
     width: '85%',
     maxWidth: modalDimensions.maxWidth,
-    maxHeight: '70%',
     alignSelf: 'center',
     marginTop: '15%',
     ...shadows.xl,
@@ -1117,7 +1108,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   dropdownList: {
-    maxHeight: 300,
   },
   dropdownItem: {
     padding: spacing.base,

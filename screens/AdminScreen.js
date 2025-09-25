@@ -38,7 +38,9 @@ export default function AdminScreen({ navigation }) {
   // Remove tabs - show everything in one view
   const [isCreateUserModalVisible, setIsCreateUserModalVisible] = useState(false);
   const [isEditUserModalVisible, setIsEditUserModalVisible] = useState(false);
+  const [isDeleteConfirmModalVisible, setIsDeleteConfirmModalVisible] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [userToDelete, setUserToDelete] = useState(null);
   const [newUser, setNewUser] = useState({
     username: '',
     email: '',
@@ -158,35 +160,92 @@ export default function AdminScreen({ navigation }) {
 
   const handleEditUser = (user) => {
     setSelectedUser(user);
+    setNewUser({
+      username: user.username,
+      email: user.email,
+      password: '', // Don't pre-fill password for security
+      role: user.role,
+      fullName: user.fullName || '',
+      phone: user.phone || '',
+    });
     setIsEditUserModalVisible(true);
   };
 
-  const handleDeleteUser = async (user) => {
-    Alert.alert(
-      'Delete User',
-      `Are you sure you want to delete user "${user.username}"? This action cannot be undone.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const result = await dbService.deleteDocument('users', user.id);
-              if (result.success) {
-                Alert.alert('Success', 'User deleted successfully');
-                loadUsers();
-              } else {
-                Alert.alert('Error', 'Failed to delete user');
-              }
-            } catch (error) {
-              console.error('Error deleting user:', error);
-              Alert.alert('Error', 'Failed to delete user');
-            }
-          }
-        }
-      ]
-    );
+  const handleDeleteUser = (user) => {
+    setUserToDelete(user);
+    setIsDeleteConfirmModalVisible(true);
+  };
+
+  const confirmDeleteUser = async () => {
+    if (!userToDelete) return;
+    
+    try {
+      console.log('Deleting user:', userToDelete.id);
+      const result = await dbService.deleteDocument('users', userToDelete.id);
+      console.log('Delete result:', result);
+      
+      if (result.success) {
+        Alert.alert('Success', 'User deleted successfully');
+        loadUsers();
+      } else {
+        Alert.alert('Error', result.message);
+      }
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      Alert.alert('Error', 'Failed to delete user');
+    } finally {
+      setIsDeleteConfirmModalVisible(false);
+      setUserToDelete(null);
+    }
+  };
+
+  const cancelDeleteUser = () => {
+    setIsDeleteConfirmModalVisible(false);
+    setUserToDelete(null);
+  };
+
+  const handleUpdateUser = async () => {
+    if (!selectedUser) return;
+    
+    try {
+      // Prepare update data (exclude password if empty)
+      const updateData = {
+        username: newUser.username,
+        email: newUser.email,
+        role: newUser.role,
+        fullName: newUser.fullName,
+        phone: newUser.phone,
+      };
+      
+      // Only include password if it's provided
+      if (newUser.password.trim()) {
+        updateData.password = newUser.password;
+      }
+      
+      console.log('Updating user:', selectedUser.id, updateData);
+      const result = await dbService.updateDocument('users', selectedUser.id, updateData);
+      console.log('Update result:', result);
+      
+      if (result.success) {
+        Alert.alert('Success', 'User updated successfully');
+        setIsEditUserModalVisible(false);
+        setSelectedUser(null);
+        setNewUser({
+          username: '',
+          email: '',
+          password: '',
+          role: 'user',
+          fullName: '',
+          phone: '',
+        });
+        loadUsers();
+      } else {
+        Alert.alert('Error', result.message);
+      }
+    } catch (error) {
+      console.error('Error updating user:', error);
+      Alert.alert('Error', 'Failed to update user');
+    }
   };
 
   const handleLogout = async () => {
@@ -583,6 +642,143 @@ export default function AdminScreen({ navigation }) {
           </View>
         </View>
       </Modal>
+
+      {/* Edit User Modal */}
+      <Modal
+        visible={isEditUserModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setIsEditUserModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.createUserModal}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Edit User</Text>
+              <TouchableOpacity onPress={() => setIsEditUserModalVisible(false)}>
+                <Text style={styles.closeButton}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            
+            <ScrollView style={styles.createUserModalScrollView} contentContainerStyle={styles.createUserModalContainer}>
+              <TextInput
+                style={styles.input}
+                placeholder="Username *"
+                value={newUser.username}
+                onChangeText={(text) => setNewUser({...newUser, username: text})}
+              />
+              
+              <TextInput
+                style={styles.input}
+                placeholder="Email *"
+                value={newUser.email}
+                onChangeText={(text) => setNewUser({...newUser, email: text})}
+                keyboardType="email-address"
+              />
+              
+              <TextInput
+                style={styles.input}
+                placeholder="Password (leave blank to keep current)"
+                value={newUser.password}
+                onChangeText={(text) => setNewUser({...newUser, password: text})}
+                secureTextEntry
+              />
+              
+              <TextInput
+                style={styles.input}
+                placeholder="Full Name"
+                value={newUser.fullName}
+                onChangeText={(text) => setNewUser({...newUser, fullName: text})}
+              />
+              
+              <TextInput
+                style={styles.input}
+                placeholder="Phone"
+                value={newUser.phone}
+                onChangeText={(text) => setNewUser({...newUser, phone: text})}
+                keyboardType="phone-pad"
+              />
+              
+              <View style={styles.roleSelector}>
+                <Text style={styles.roleLabel}>Role:</Text>
+                {userRoles.map((role) => (
+                  <TouchableOpacity
+                    key={role.value}
+                    style={[
+                      styles.roleOption,
+                      newUser.role === role.value && styles.roleOptionSelected
+                    ]}
+                    onPress={() => setNewUser({...newUser, role: role.value})}
+                  >
+                    <Text style={[
+                      styles.roleOptionText,
+                      newUser.role === role.value && styles.roleOptionTextSelected
+                    ]}>
+                      {role.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
+            
+            <View style={styles.createUserModalButtons}>
+              <TouchableOpacity 
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={() => setIsEditUserModalVisible(false)}
+              >
+                <Text style={styles.modalButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.modalButton, styles.createButton]}
+                onPress={handleUpdateUser}
+              >
+                <Text style={styles.modalButtonText}>Update User</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        visible={isDeleteConfirmModalVisible}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={cancelDeleteUser}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.deleteConfirmModal}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Delete User</Text>
+            </View>
+            
+            <View style={styles.deleteConfirmContent}>
+              <Text style={styles.deleteConfirmText}>
+                Are you sure you want to delete user "{userToDelete?.username}"?
+              </Text>
+              <Text style={styles.deleteWarningText}>
+                This action cannot be undone.
+              </Text>
+            </View>
+            
+            <View style={styles.deleteConfirmButtons}>
+              <TouchableOpacity 
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={cancelDeleteUser}
+              >
+                <Text style={styles.modalButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.modalButton, styles.deleteConfirmButton]}
+                onPress={confirmDeleteUser}
+              >
+                <Text style={styles.modalButtonText}>Delete</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -656,7 +852,6 @@ const styles = StyleSheet.create({
     paddingVertical: buttonDimensions.paddingVertical,
     borderRadius: borderRadius.base,
     alignItems: 'center',
-    minHeight: buttonDimensions.height,
     minWidth: responsiveDimensions.isMobile ? '100%' : 120,
     ...shadows.base,
     borderWidth: 1,
@@ -762,7 +957,6 @@ const styles = StyleSheet.create({
     ...shadows.lg,
     borderWidth: 1,
     borderColor: colors.border.light,
-    minHeight: 200,
   },
   cardTitle: {
     fontSize: fontSizes.xl,
@@ -789,7 +983,6 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.lg,
     alignItems: 'center',
     ...shadows.lg,
-    minHeight: cardDimensions.minHeight,
     borderWidth: 1,
     borderColor: colors.border.light,
   },
@@ -848,7 +1041,6 @@ const styles = StyleSheet.create({
   },
   // Fleet Status Card
   fleetStatusCard: {
-    minHeight: 250,
   },
   fleetContent: {
     flexDirection: 'row',
@@ -898,7 +1090,6 @@ const styles = StyleSheet.create({
   },
   // Job Distribution Card
   jobDistributionCard: {
-    minHeight: 250,
   },
   pieChart: {
     gap: spacing.sm,
@@ -919,7 +1110,6 @@ const styles = StyleSheet.create({
   },
   // Performance Card
   performanceCard: {
-    minHeight: 250,
   },
   performanceMetrics: {
     gap: spacing.base,
@@ -1041,7 +1231,6 @@ const styles = StyleSheet.create({
   },
   // User Management Card
   userManagementCard: {
-    minHeight: 300,
   },
   addUserButton: {
     backgroundColor: colors.primary,
@@ -1113,7 +1302,6 @@ const styles = StyleSheet.create({
   },
   // Recent Activity Card
   recentActivityCard: {
-    minHeight: 300,
   },
   activityList: {
     gap: spacing.sm,
@@ -1164,7 +1352,6 @@ const styles = StyleSheet.create({
   },
   // Top Users Card
   topUsersCard: {
-    minHeight: 300,
   },
   topUsersList: {
     gap: spacing.sm,
@@ -1246,7 +1433,6 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     borderRadius: borderRadius.base,
     alignItems: 'center',
-    minHeight: buttonDimensions.height * 0.8,
     minWidth: 40,
     ...shadows.sm,
     borderWidth: 1,
@@ -1382,7 +1568,6 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.lg,
     width: modalDimensions.width,
     maxWidth: modalDimensions.maxWidth,
-    maxHeight: '90vh',
     ...shadows.xl,
     borderWidth: 1,
     borderColor: colors.border.light,
@@ -1392,7 +1577,6 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.lg,
     width: modalDimensions.width,
     maxWidth: modalDimensions.maxWidth,
-    maxHeight: '90vh',
     ...shadows.xl,
     borderWidth: 1,
     borderColor: colors.border.light,
@@ -1400,7 +1584,6 @@ const styles = StyleSheet.create({
   },
   createUserModalScrollView: {
     flex: 1,
-    maxHeight: 'calc(90vh - 120px)',
   },
   createUserModalContainer: {
     padding: modalDimensions.padding,
@@ -1446,7 +1629,6 @@ const styles = StyleSheet.create({
     fontSize: inputDimensions.fontSize,
     marginBottom: spacing.base,
     backgroundColor: colors.background.primary,
-    minHeight: inputDimensions.height,
     ...shadows.sm,
   },
   roleSelector: {
@@ -1489,7 +1671,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: buttonDimensions.paddingHorizontal,
     borderRadius: borderRadius.base,
     alignItems: 'center',
-    minHeight: buttonDimensions.height,
     ...shadows.base,
     borderWidth: 1,
     borderColor: 'transparent',
@@ -1504,6 +1685,43 @@ const styles = StyleSheet.create({
     color: colors.text.inverse,
     fontSize: buttonDimensions.fontSize,
     fontWeight: '600',
+  },
+  deleteConfirmModal: {
+    backgroundColor: colors.background.primary,
+    borderRadius: borderRadius.lg,
+    width: modalDimensions.width,
+    ...shadows.xl,
+    borderWidth: 1,
+    borderColor: colors.border.light,
+  },
+  deleteConfirmContent: {
+    padding: modalDimensions.padding,
+    alignItems: 'center',
+  },
+  deleteConfirmText: {
+    fontSize: fontSizes.lg,
+    color: colors.text.primary,
+    textAlign: 'center',
+    marginBottom: spacing.sm,
+  },
+  deleteWarningText: {
+    fontSize: fontSizes.base,
+    color: colors.danger,
+    textAlign: 'center',
+    fontWeight: '600',
+  },
+  deleteConfirmButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: modalDimensions.padding,
+    paddingTop: spacing.base,
+    borderTopWidth: 1,
+    borderTopColor: colors.border.light,
+    backgroundColor: colors.background.primary,
+    gap: spacing.sm,
+  },
+  deleteConfirmButton: {
+    backgroundColor: colors.danger,
   },
 });
 

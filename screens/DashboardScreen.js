@@ -949,7 +949,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background.secondary,
     height: '100vh',
-    minHeight: '100vh',
   },
   scrollableContent: {
     flex: 1,
@@ -967,10 +966,8 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     // Force scrolling in case CSS overrides don't work
     ...(Platform.OS === 'web' && {
-      maxHeight: 'calc(100vh - 200px)',
       overflowY: 'auto',
       flexBasis: 'auto',
-      minHeight: 0,
     }),
   },
   loadingContainer: {
@@ -1024,7 +1021,6 @@ const styles = StyleSheet.create({
     paddingVertical: buttonDimensions.paddingVertical,
     borderRadius: borderRadius.base,
     alignItems: 'center',
-    minHeight: buttonDimensions.height,
     minWidth: responsiveDimensions.isMobile ? '100%' : 120,
     ...shadows.base,
     borderWidth: 1,
@@ -1079,7 +1075,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: inputDimensions.paddingHorizontal,
     fontSize: inputDimensions.fontSize,
     backgroundColor: colors.background.primary,
-    minHeight: inputDimensions.height,
   },
   statusFilter: {
     flexDirection: 'row',
@@ -1091,7 +1086,6 @@ const styles = StyleSheet.create({
     padding: inputDimensions.paddingVertical,
     paddingHorizontal: inputDimensions.paddingHorizontal,
     backgroundColor: colors.background.primary,
-    minHeight: inputDimensions.height,
     flex: responsiveDimensions.isMobile ? 0 : 1,
     minWidth: responsiveDimensions.isMobile ? '100%' : 200,
   },
@@ -1123,9 +1117,7 @@ const styles = StyleSheet.create({
     WebkitOverflowScrolling: 'touch',
     // Additional deployment-safe scrolling
     ...(Platform.OS === 'web' && {
-      maxHeight: 'calc(100vh - 200px)',
       flexBasis: 'auto',
-      minHeight: 0,
     }),
   },
   flatListStyle: {
@@ -1169,7 +1161,6 @@ const styles = StyleSheet.create({
     marginHorizontal: spacing.sm,
     ...shadows.base,
     flex: 1,
-    minHeight: cardDimensions.minHeight,
     borderWidth: 1,
     borderColor: colors.border.light,
     transition: 'all 0.2s ease-in-out',
@@ -1294,7 +1285,6 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.lg,
     width: modalDimensions.width,
     maxWidth: modalDimensions.maxWidth,
-    maxHeight: '95vh',
     ...shadows.xl,
   },
   modalHeader: {
@@ -1316,7 +1306,6 @@ const styles = StyleSheet.create({
   modalContent: {
     flex: 1,
     padding: modalDimensions.padding,
-    maxHeight: 'calc(95vh - 120px)',
     overflowY: 'auto',
   },
   modalContentContainer: {
@@ -1446,7 +1435,6 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.base,
     borderTopWidth: 1,
     borderTopColor: colors.border.light,
-    minHeight: 60,
   },
   actionButton: {
     flex: responsiveDimensions.isMobile ? 0 : 1,
@@ -1455,7 +1443,6 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.sm,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: buttonDimensions.height + 10,
     ...shadows.sm,
     borderWidth: 2,
     borderColor: 'transparent',
@@ -1492,13 +1479,11 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.lg,
     width: modalDimensions.width,
     maxWidth: modalDimensions.maxWidth,
-    maxHeight: '90vh',
     ...shadows.xl,
     overflow: 'hidden',
   },
   editFormScrollView: {
     flex: 1,
-    maxHeight: 'calc(90vh - 120px)',
   },
   editFormContainer: {
     padding: modalDimensions.padding,
@@ -1521,7 +1506,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: inputDimensions.paddingHorizontal,
     fontSize: inputDimensions.fontSize,
     backgroundColor: colors.background.primary,
-    minHeight: inputDimensions.height,
   },
   editButtons: {
     flexDirection: 'row',
@@ -1539,7 +1523,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: buttonDimensions.paddingHorizontal,
     borderRadius: borderRadius.base,
     alignItems: 'center',
-    minHeight: buttonDimensions.height,
   },
   editButtonText: {
     fontSize: buttonDimensions.fontSize,
@@ -1588,7 +1571,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
     borderRadius: borderRadius.sm,
     alignItems: 'center',
-    minHeight: buttonDimensions.height * 0.8,
     maxWidth: responsiveDimensions.isMobile ? '100%' : '50%',
   },
   photoButtonText: {
@@ -1613,7 +1595,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: colors.background.primary,
-    minHeight: inputDimensions.height,
   },
   dropdownButtonText: {
     fontSize: inputDimensions.fontSize,

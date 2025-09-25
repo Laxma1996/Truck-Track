@@ -296,11 +296,13 @@ export const dbService = {
   // Update a document
   async updateDocument(collectionName, docId, data) {
     try {
+      console.log('Updating document:', collectionName, docId, data);
       const docRef = doc(db, collectionName, docId);
       await updateDoc(docRef, {
         ...data,
         updatedAt: new Date().toISOString()
       });
+      console.log('Document updated successfully');
       return { success: true };
     } catch (error) {
       console.error(`Error updating document in ${collectionName}:`, error);

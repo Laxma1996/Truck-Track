@@ -437,7 +437,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: buttonDimensions.paddingHorizontal,
     borderRadius: borderRadius.base,
     alignItems: 'center',
-    minHeight: buttonDimensions.height,
     ...shadows.base,
   },
   primaryButton: {
@@ -504,7 +503,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: inputDimensions.paddingHorizontal,
     fontSize: inputDimensions.fontSize,
     backgroundColor: colors.background.primary,
-    minHeight: inputDimensions.height,
   },
   demoCredentials: {
     backgroundColor: colors.primaryLight + '20',
@@ -535,7 +533,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: buttonDimensions.paddingHorizontal,
     borderRadius: borderRadius.base,
     alignItems: 'center',
-    minHeight: buttonDimensions.height,
   },
   cancelModalButton: {
     backgroundColor: colors.background.secondary,

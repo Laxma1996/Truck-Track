@@ -275,7 +275,6 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.base,
     backgroundColor: colors.background.primary,
     marginBottom: spacing.sm,
-    minHeight: 40,
   },
   loginButton: {
     backgroundColor: colors.primary,
@@ -284,7 +283,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: spacing.base,
     ...shadows.base,
-    minHeight: 44,
   },
   loginButtonDisabled: {
     backgroundColor: colors.gray[400],
@@ -341,7 +339,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: spacing.xs,
     ...shadows.base,
-    minHeight: 36,
   },
   directAccessButtonDisabled: {
     backgroundColor: colors.gray[400],

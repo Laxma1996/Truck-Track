@@ -1,0 +1,143 @@
+[1mdiff --git a/screens/DashboardScreen.js b/screens/DashboardScreen.js[m
+[1mindex f27fce3..3f4b175 100644[m
+[1m--- a/screens/DashboardScreen.js[m
+[1m+++ b/screens/DashboardScreen.js[m
+[36m@@ -949,7 +949,6 @@[m [mconst styles = StyleSheet.create({[m
+     flex: 1,[m
+     backgroundColor: colors.background.secondary,[m
+     height: '100vh',[m
+[31m-    minHeight: '100vh',[m
+   },[m
+   scrollableContent: {[m
+     flex: 1,[m
+[36m@@ -967,10 +966,8 @@[m [mconst styles = StyleSheet.create({[m
+     flexGrow: 1,[m
+     // Force scrolling in case CSS overrides don't work[m
+     ...(Platform.OS === 'web' && {[m
+[31m-      maxHeight: 'calc(100vh - 200px)',[m
+       overflowY: 'auto',[m
+       flexBasis: 'auto',[m
+[31m-      minHeight: 0,[m
+     }),[m
+   },[m
+   loadingContainer: {[m
+[36m@@ -1024,7 +1021,6 @@[m [mconst styles = StyleSheet.create({[m
+     paddingVertical: buttonDimensions.paddingVertical,[m
+     borderRadius: borderRadius.base,[m
+     alignItems: 'center',[m
+[31m-    minHeight: buttonDimensions.height,[m
+     minWidth: responsiveDimensions.isMobile ? '100%' : 120,[m
+     ...shadows.base,[m
+     borderWidth: 1,[m
+[36m@@ -1079,7 +1075,6 @@[m [mconst styles = StyleSheet.create({[m
+     paddingHorizontal: inputDimensions.paddingHorizontal,[m
+     fontSize: inputDimensions.fontSize,[m
+     backgroundColor: colors.background.primary,[m
+[31m-    minHeight: inputDimensions.height,[m
+   },[m
+   statusFilter: {[m
+     flexDirection: 'row',[m
+[36m@@ -1091,7 +1086,6 @@[m [mconst styles = StyleSheet.create({[m
+     padding: inputDimensions.paddingVertical,[m
+     paddingHorizontal: inputDimensions.paddingHorizontal,[m
+     backgroundColor: colors.background.primary,[m
+[31m-    minHeight: inputDimensions.height,[m
+     flex: responsiveDimensions.isMobile ? 0 : 1,[m
+     minWidth: responsiveDimensions.isMobile ? '100%' : 200,[m
+   },[m
+[36m@@ -1123,9 +1117,7 @@[m [mconst styles = StyleSheet.create({[m
+     WebkitOverflowScrolling: 'touch',[m
+     // Additional deployment-safe scrolling[m
+     ...(Platform.OS === 'web' && {[m
+[31m-      maxHeight: 'calc(100vh - 200px)',[m
+       flexBasis: 'auto',[m
+[31m-      minHeight: 0,[m
+     }),[m
+   },[m
+   flatListStyle: {[m
+[36m@@ -1169,7 +1161,6 @@[m [mconst styles = StyleSheet.create({[m
+     marginHorizontal: spacing.sm,[m
+     ...shadows.base,[m
+     flex: 1,[m
+[31m-    minHeight: cardDimensions.minHeight,[m
+     borderWidth: 1,[m
+     borderColor: colors.border.light,[m
+     transition: 'all 0.2s ease-in-out',[m
+[36m@@ -1294,7 +1285,6 @@[m [mconst styles = StyleSheet.create({[m
+     borderRadius: borderRadius.lg,[m
+     width: modalDimensions.width,[m
+     maxWidth: modalDimensions.maxWidth,[m
+[31m-    maxHeight: '95vh',[m
+     ...shadows.xl,[m
+   },[m
+   modalHeader: {[m
+[36m@@ -1316,7 +1306,6 @@[m [mconst styles = StyleSheet.create({[m
+   modalContent: {[m
+     flex: 1,[m
+     padding: modalDimensions.padding,[m
+[31m-    maxHeight: 'calc(95vh - 120px)',[m
+     overflowY: 'auto',[m
+   },[m
+   modalContentContainer: {[m
+[36m@@ -1446,7 +1435,6 @@[m [mconst styles = StyleSheet.create({[m
+     paddingBottom: spacing.base,[m
+     borderTopWidth: 1,[m
+     borderTopColor: colors.border.light,[m
+[31m-    minHeight: 60,[m
+   },[m
+   actionButton: {[m
+     flex: responsiveDimensions.isMobile ? 0 : 1,[m
+[36m@@ -1455,7 +1443,6 @@[m [mconst styles = StyleSheet.create({[m
+     borderRadius: borderRadius.sm,[m
+     alignItems: 'center',[m
+     justifyContent: 'center',[m
+[31m-    minHeight: buttonDimensions.height + 10,[m
+     ...shadows.sm,[m
+     borderWidth: 2,[m
+     borderColor: 'transparent',[m
+[36m@@ -1492,13 +1479,11 @@[m [mconst styles = StyleSheet.create({[m
+     borderRadius: borderRadius.lg,[m
+     width: modalDimensions.width,[m
+     maxWidth: modalDimensions.maxWidth,[m
+[31m-    maxHeight: '90vh',[m
+     ...shadows.xl,[m
+     overflow: 'hidden',[m
+   },[m
+   editFormScrollView: {[m
+     flex: 1,[m
+[31m-    maxHeight: 'calc(90vh - 120px)',[m
+   },[m
+   editFormContainer: {[m
+     padding: modalDimensions.padding,[m
+[36m@@ -1521,7 +1506,6 @@[m [mconst styles = StyleSheet.create({[m
+     paddingHorizontal: inputDimensions.paddingHorizontal,[m
+     fontSize: inputDimensions.fontSize,[m
+     backgroundColor: colors.background.primary,[m
+[31m-    minHeight: inputDimensions.height,[m
+   },[m
+   editButtons: {[m
+     flexDirection: 'row',[m
+[36m@@ -1539,7 +1523,6 @@[m [mconst styles = StyleSheet.create({[m
+     paddingHorizontal: buttonDimensions.paddingHorizontal,[m
+     borderRadius: borderRadius.base,[m
+     alignItems: 'center',[m
+[31m-    minHeight: buttonDimensions.height,[m
+   },[m
+   editButtonText: {[m
+     fontSize: buttonDimensions.fontSize,[m
+[36m@@ -1588,7 +1571,6 @@[m [mconst styles = StyleSheet.create({[m
+     paddingHorizontal: spacing.sm,[m
+     borderRadius: borderRadius.sm,[m
+     alignItems: 'center',[m
+[31m-    minHeight: buttonDimensions.height * 0.8,[m
+     maxWidth: responsiveDimensions.isMobile ? '100%' : '50%',[m
+   },[m
+   photoButtonText: {[m
+[36m@@ -1613,7 +1595,6 @@[m [mconst styles = StyleSheet.create({[m
+     justifyContent: 'space-between',[m
+     alignItems: 'center',[m
+     backgroundColor: colors.background.primary,[m
+[31m-    minHeight: inputDimensions.height,[m
+   },[m
+   dropdownButtonText: {[m
+     fontSize: inputDimensions.fontSize,[m

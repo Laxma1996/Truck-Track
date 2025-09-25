@@ -16,7 +16,6 @@
         display: flex;
         flex-direction: column;
         height: 100vh;
-        min-height: 100vh;
       }
       /* Ensure proper scrolling */
       * {
@@ -25,7 +24,6 @@
       /* Force full height for React Native Web */
       .react-native-web {
         height: 100vh !important;
-        min-height: 100vh !important;
       }
       
           /* Hide scrollbars but keep scroll functionality */
@@ -49,7 +47,6 @@
       /* Force proper flex behavior on all View components */
       [class*="css-view-"], [class*="r-"] {
         flex-basis: auto !important;
-        min-height: 0 !important;
         box-sizing: border-box !important;
       }
       
@@ -57,14 +54,12 @@
       [class*="r-overflowY-"], [class*="r-flex-"] {
         overflow-y: auto !important;
         flex-basis: auto !important;
-        min-height: 0 !important;
         height: auto !important;
       }
       
       /* Specific fixes for common React Native Web patterns */
       [class*="r-flex-"] {
         flex-basis: auto !important;
-        min-height: 0 !important;
         overflow: visible !important;
       }
       
@@ -72,13 +67,11 @@
       [class*="r-height-"] {
         height: 100% !important;
         flex-basis: auto !important;
-        min-height: 0 !important;
       }
       
       /* Universal container fixes */
       div[class*="r-"] {
         flex-basis: auto !important;
-        min-height: 0 !important;
         box-sizing: border-box !important;
       }
       
@@ -87,27 +80,23 @@
         height: 100vh !important;
         overflow: hidden !important;
         max-width: 100vw !important;
-        max-height: 100vh !important;
       }
       
       /* Ensure all flex containers can scroll */
       [style*="flex"] {
         flex-basis: auto !important;
-        min-height: 0 !important;
       }
       
       /* Force scrolling on any element with overflow classes */
       [class*="overflow"] {
         overflow-y: auto !important;
         flex-basis: auto !important;
-        min-height: 0 !important;
       }
       
       /* Additional safety net for scrolling */
       .r-flex-1, [class*="r-flex-1"] {
         flex: 1 !important;
         flex-basis: auto !important;
-        min-height: 0 !important;
         overflow-y: auto !important;
       }
       
@@ -123,22 +112,18 @@
       div[class*="r-"]:has([class*="r-flex-"]) {
         overflow-y: auto !important;
         flex-basis: auto !important;
-        min-height: 0 !important;
-        max-height: calc(100vh - 200px) !important;
       }
       
       /* Force scrolling on any element that contains job cards */
       [class*="r-"]:has(> div[class*="r-"]) {
         overflow-y: auto !important;
         flex-basis: auto !important;
-        min-height: 0 !important;
       }
       
       /* Additional deployment-safe scrolling fixes */
       @media screen and (min-width: 768px) {
         /* Desktop specific fixes */
         [class*="r-flex-"] {
-          max-height: calc(100vh - 150px) !important;
           overflow-y: auto !important;
         }
       }
@@ -146,7 +131,6 @@
       @media screen and (max-width: 767px) {
         /* Mobile specific fixes */
         [class*="r-flex-"] {
-          max-height: calc(100vh - 200px) !important;
           overflow-y: auto !important;
         }
       }
