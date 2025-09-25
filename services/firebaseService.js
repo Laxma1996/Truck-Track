@@ -177,16 +177,9 @@ export const jobService = {
   // Get all jobs for a user
   async getUserJobs(userId) {
     try {
-      console.log('🔍 getUserJobs called with userId:', userId);
-      
       const jobsRef = collection(db, COLLECTIONS.JOBS);
-      console.log('📁 Jobs collection reference:', jobsRef);
-      
       const q = query(jobsRef, where('userId', '==', userId));
-      console.log('🔎 Query created:', q);
-      
       const querySnapshot = await getDocs(q);
-      console.log('📊 Query executed, found documents:', querySnapshot.size);
       
       const jobs = [];
       querySnapshot.forEach((doc) => {
@@ -194,19 +187,8 @@ export const jobService = {
           id: doc.id,
           ...doc.data()
         };
-        console.log('📄 Job document:', {
-          id: jobData.id,
-          userId: jobData.userId,
-          activity: jobData.activity,
-          truckType: jobData.truckType,
-          weight: jobData.weight,
-          status: jobData.status,
-          createdAt: jobData.createdAt
-        });
         jobs.push(jobData);
       });
-      
-      console.log('✅ Total jobs found:', jobs.length);
       return { success: true, jobs };
     } catch (error) {
       console.error('💥 Error fetching user jobs:', error);

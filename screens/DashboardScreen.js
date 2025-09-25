@@ -148,62 +148,10 @@ export default function DashboardScreen({ navigation }) {
         return;
       }
 
-      console.log('📡 Calling jobService.getUserJobs with userId:', userId);
       const result = await jobService.getUserJobs(userId);
-      console.log('📊 getUserJobs result:', result);
       
-      // Debug: Also check all jobs in database
-      console.log('🔍 Debug: Checking all jobs in database...');
-      const allJobsResult = await jobService.getAllJobs();
-      console.log('📊 All jobs result:', allJobsResult);
-      
-      // Debug: Check if any jobs exist for this user
-      if (allJobsResult.success && allJobsResult.jobs.length > 0) {
-        console.log('🔍 Found jobs in database, checking user matches...');
-        const userJobs = allJobsResult.jobs.filter(job => job.userId === userId);
-        console.log('👤 Jobs for current user:', userJobs.length);
-        console.log('👤 User jobs details:', userJobs);
-        
-        // Check for duplicate jobs
-        console.log('🔍 Checking for duplicate jobs...');
-        const jobIds = allJobsResult.jobs.map(job => job.id);
-        const uniqueJobIds = [...new Set(jobIds)];
-        console.log('📊 Total jobs:', allJobsResult.jobs.length);
-        console.log('📊 Unique job IDs:', uniqueJobIds.length);
-        console.log('📊 Duplicate jobs found:', allJobsResult.jobs.length - uniqueJobIds.length);
-        
-        // Check for jobs with same activity, truckType, weight, and timestamp
-        const jobSignatures = allJobsResult.jobs.map(job => ({
-          id: job.id,
-          signature: `${job.activity}-${job.truckType}-${job.weight}-${job.startTime}`,
-          userId: job.userId,
-          createdAt: job.createdAt
-        }));
-        
-        const duplicateSignatures = jobSignatures.filter((job, index, arr) => 
-          arr.findIndex(j => j.signature === job.signature && j.userId === job.userId) !== index
-        );
-        
-        if (duplicateSignatures.length > 0) {
-          console.log('🚨 DUPLICATE JOBS FOUND:', duplicateSignatures);
-        } else {
-          console.log('✅ No duplicate job signatures found');
-        }
-        
-        // Check if userId format matches
-        console.log('🔍 User ID comparison:');
-        console.log('  - Current userId:', userId, '(type:', typeof userId, ')');
-        allJobsResult.jobs.forEach((job, index) => {
-          console.log(`  - Job ${index} userId:`, job.userId, '(type:', typeof job.userId, ')');
-          console.log(`  - Match:`, job.userId === userId);
-        });
-      } else {
-        console.log('❌ No jobs found in database at all');
-      }
       
       if (result.success) {
-        console.log('✅ Jobs fetched successfully, count:', result.jobs.length);
-        console.log('📋 Jobs data:', result.jobs);
         
         const jobsPerPage = 10;
         const startIndex = (pageNum - 1) * jobsPerPage;
