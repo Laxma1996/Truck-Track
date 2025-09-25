@@ -51,6 +51,16 @@ export default function LoggingScreen({ navigation }) {
     cleanupIncompleteJobs();
   }, []);
 
+  // Debug photo state changes
+  useEffect(() => {
+    console.log('🔄 Photo state changed:', {
+      hasPhoto: !!photo,
+      hasUri: photo ? !!photo.uri : false,
+      hasBase64: photo ? !!photo.base64 : false,
+      uriPreview: photo && photo.uri ? photo.uri.substring(0, 50) + '...' : 'null'
+    });
+  }, [photo]);
+
   const cleanupIncompleteJobs = async () => {
     try {
       const result = await jobService.cleanupIncompleteJobs();
@@ -133,6 +143,17 @@ export default function LoggingScreen({ navigation }) {
 
   const takePhoto = async () => {
     try {
+      // Debug ImagePicker properties
+      console.log('🔍 ImagePicker properties:', {
+        MediaType: ImagePicker.MediaType,
+        MediaTypeOptions: ImagePicker.MediaTypeOptions,
+        availableProperties: Object.keys(ImagePicker)
+      });
+      
+      // Check if we're on web and handle accordingly
+      const isWeb = typeof window !== 'undefined';
+      console.log('🌐 Platform check:', { isWeb });
+      
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
       
       if (status !== 'granted') {
@@ -140,13 +161,30 @@ export default function LoggingScreen({ navigation }) {
         return;
       }
 
-      const result = await ImagePicker.launchCameraAsync({
+      const pickerOptions = {
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [4, 3],
         quality: 0.8,
         base64: true, // This is important for web compatibility
-      });
+      };
+      
+      console.log('📷 Launching camera with options:', pickerOptions);
+      
+      let result;
+      try {
+        result = await ImagePicker.launchCameraAsync(pickerOptions);
+      } catch (pickerError) {
+        console.error('❌ ImagePicker camera error:', pickerError);
+        // Fallback: try without some options
+        const fallbackOptions = {
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          quality: 0.8,
+          base64: true,
+        };
+        console.log('🔄 Trying fallback options:', fallbackOptions);
+        result = await ImagePicker.launchCameraAsync(fallbackOptions);
+      }
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const photoAsset = result.assets[0];
@@ -157,7 +195,14 @@ export default function LoggingScreen({ navigation }) {
           height: photoAsset.height
         });
         
+        console.log('📸 Setting photo state with asset:', {
+          uri: photoAsset.uri,
+          hasBase64: !!photoAsset.base64,
+          width: photoAsset.width,
+          height: photoAsset.height
+        });
         setPhoto(photoAsset);
+        console.log('✅ Photo state set successfully');
         Alert.alert('Success', 'Photo captured successfully!');
       }
     } catch (error) {
@@ -175,13 +220,30 @@ export default function LoggingScreen({ navigation }) {
         return;
       }
 
-      const result = await ImagePicker.launchImageLibraryAsync({
+      const pickerOptions = {
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [4, 3],
         quality: 0.8,
         base64: true, // This is important for web compatibility
-      });
+      };
+      
+      console.log('🖼️ Launching gallery with options:', pickerOptions);
+      
+      let result;
+      try {
+        result = await ImagePicker.launchImageLibraryAsync(pickerOptions);
+      } catch (pickerError) {
+        console.error('❌ ImagePicker gallery error:', pickerError);
+        // Fallback: try without some options
+        const fallbackOptions = {
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          quality: 0.8,
+          base64: true,
+        };
+        console.log('🔄 Trying fallback options:', fallbackOptions);
+        result = await ImagePicker.launchImageLibraryAsync(fallbackOptions);
+      }
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const photoAsset = result.assets[0];
@@ -192,7 +254,14 @@ export default function LoggingScreen({ navigation }) {
           height: photoAsset.height
         });
         
+        console.log('📸 Setting photo state with selected asset:', {
+          uri: photoAsset.uri,
+          hasBase64: !!photoAsset.base64,
+          width: photoAsset.width,
+          height: photoAsset.height
+        });
         setPhoto(photoAsset);
+        console.log('✅ Photo state set successfully');
         Alert.alert('Success', 'Photo selected successfully!');
       }
     } catch (error) {
@@ -202,18 +271,24 @@ export default function LoggingScreen({ navigation }) {
   };
 
   const startJob = async () => {
+    console.log('🚀 START JOB CLICKED - Starting validation...');
+    console.log('Form data:', { activity, truckType, weight, photo: photo ? 'Present' : 'Missing' });
+    
     // Enhanced validation with better error messages
     if (!activity || activity.trim() === '') {
+      console.log('❌ Validation failed: No activity selected');
       Alert.alert('Validation Error', 'Please select an activity from the dropdown');
       return;
     }
 
     if (!truckType || truckType.trim() === '') {
+      console.log('❌ Validation failed: No truck type selected');
       Alert.alert('Validation Error', 'Please select a truck type from the dropdown');
       return;
     }
 
     if (!weight || weight.trim() === '') {
+      console.log('❌ Validation failed: No weight entered');
       Alert.alert('Validation Error', 'Please enter the truck weight in kilograms');
       return;
     }
@@ -221,25 +296,31 @@ export default function LoggingScreen({ navigation }) {
     // Validate weight is a number
     const weightNumber = parseFloat(weight);
     if (isNaN(weightNumber) || weightNumber <= 0) {
+      console.log('❌ Validation failed: Invalid weight:', weight);
       Alert.alert('Validation Error', 'Please enter a valid weight (must be a positive number)');
       return;
     }
+    
+    console.log('✅ Basic validations passed');
 
     // Enhanced photo validation
     if (!photo) {
+      console.log('❌ Validation failed: No photo taken');
       Alert.alert('Validation Error', 'Please take a photo of the truck using the camera or select from gallery');
       return;
     }
 
-    console.log('Photo validation - photo object:', {
+    console.log('📸 Photo validation - photo object:', {
       hasPhoto: !!photo,
       hasUri: !!photo.uri,
       hasBase64: !!photo.base64,
       uriType: photo.uri ? typeof photo.uri : 'undefined',
-      uriLength: photo.uri ? photo.uri.length : 0
+      uriLength: photo.uri ? photo.uri.length : 0,
+      uriPreview: photo.uri ? photo.uri.substring(0, 100) + '...' : 'null'
     });
 
     if (!photo.uri || photo.uri.trim() === '') {
+      console.log('❌ Validation failed: Photo URI is empty');
       Alert.alert('Validation Error', 'Photo is invalid. Please take a new photo of the truck');
       return;
     }
@@ -252,30 +333,34 @@ export default function LoggingScreen({ navigation }) {
                               photo.base64; // Accept if base64 is available
 
     if (!isValidPhotoFormat) {
-      console.log('Invalid photo format:', photo.uri);
+      console.log('❌ Validation failed: Invalid photo format:', photo.uri);
       Alert.alert('Validation Error', 'Photo format is not supported. Please take a new photo');
       return;
     }
+    
+    console.log('✅ Photo validation passed');
 
-    console.log('All validations passed:', {
+    console.log('✅ All validations passed:', {
       activity,
       truckType,
       weight: weightNumber,
       photoUri: photo.uri ? 'Present' : 'Missing'
     });
 
+    console.log('🔄 Setting loading state to true...');
     setIsLoading(true);
 
     try {
       // Get current user ID from AsyncStorage
+      console.log('🔍 Getting user data from AsyncStorage...');
       const userId = await AsyncStorage.getItem('truckTrackerUserId');
       const username = await AsyncStorage.getItem('truckTrackerUser');
       
-      console.log('StartJob - UserId:', userId);
-      console.log('StartJob - Username:', username);
+      console.log('👤 User data:', { userId, username });
       
       if (!userId) {
-        console.log('No userId found, redirecting to login');
+        console.log('❌ No userId found, redirecting to login');
+        setIsLoading(false);
         Alert.alert(
           'Authentication Required', 
           'Please login first to start a job. You will be redirected to the login page.',
@@ -288,6 +373,8 @@ export default function LoggingScreen({ navigation }) {
         );
         return;
       }
+      
+      console.log('✅ User authentication verified');
 
       // Final validation before saving
       if (!photo.uri || photo.uri.trim() === '') {
@@ -334,13 +421,29 @@ export default function LoggingScreen({ navigation }) {
       }
 
       // Save job to Firebase
-      console.log('Saving job data to Firebase:', jobData);
+      console.log('💾 Saving job data to Firebase...');
+      console.log('Job data being saved:', {
+        userId: jobData.userId,
+        username: jobData.username,
+        activity: jobData.activity,
+        truckType: jobData.truckType,
+        weight: jobData.weight,
+        photoLength: jobData.photo ? jobData.photo.length : 0,
+        photoPreview: jobData.photo ? jobData.photo.substring(0, 50) + '...' : 'null'
+      });
+      
+      
+      
       const result = await jobService.saveJob(jobData);
-      console.log('Firebase save result:', result);
+      console.log('🔥 Firebase save result:', result);
       
       if (result.success) {
+        console.log('✅ Job saved successfully to Firebase!');
+        
         // Also save locally as backup
+        console.log('💾 Saving job locally as backup...');
         const localJob = await saveJob(jobData);
+        console.log('✅ Local backup saved:', localJob);
         
         // Store job data for success modal
         setSavedJobData({
@@ -349,17 +452,25 @@ export default function LoggingScreen({ navigation }) {
           savedAt: new Date().toISOString()
         });
         
-        console.log('Job saved successfully with base64 image');
+        console.log('🎉 Job saved successfully with photo data');
         
         // Show success modal
+        console.log('📱 Showing success modal...');
         setIsSuccessModalVisible(true);
       } else {
+        console.log('❌ Firebase save failed:', result.message);
         Alert.alert('Error', result.message || 'Failed to save job data');
       }
     } catch (error) {
-      console.error('Error saving job:', error);
+      console.error('💥 Error saving job:', error);
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
       Alert.alert('Error', 'Failed to save job data: ' + error.message);
     } finally {
+      console.log('🔄 Setting loading state to false...');
       setIsLoading(false);
     }
   };
@@ -636,7 +747,30 @@ export default function LoggingScreen({ navigation }) {
             <Text style={styles.label}>Truck Photo *</Text>
             {photo ? (
               <View style={styles.photoContainer}>
-                <Image source={{ uri: photo.uri }} style={styles.photo} />
+                {console.log('🖼️ Rendering photo:', {
+                  hasPhoto: !!photo,
+                  hasUri: !!photo.uri,
+                  hasBase64: !!photo.base64,
+                  uriPreview: photo.uri ? photo.uri.substring(0, 50) + '...' : 'null'
+                })}
+                <Image 
+                  source={{ 
+                    uri: photo.base64 ? `data:image/jpeg;base64,${photo.base64}` : photo.uri 
+                  }} 
+                  style={[styles.photo, { 
+                    minWidth: 200, 
+                    minHeight: 150,
+                    maxWidth: 300,
+                    maxHeight: 200
+                  }]}
+                  onError={(error) => console.error('❌ Image load error:', error)}
+                  onLoad={() => console.log('✅ Image loaded successfully')}
+                  onLoadStart={() => console.log('🔄 Image loading started')}
+                  onLoadEnd={() => console.log('🏁 Image loading ended')}
+                />
+                <Text style={{ fontSize: 12, color: '#666', marginTop: 5 }}>
+                  Photo loaded: {photo.width}x{photo.height}
+                </Text>
                 <TouchableOpacity 
                   style={styles.changePhotoButton}
                   onPress={showPhotoOptions}
@@ -994,12 +1128,22 @@ const styles = StyleSheet.create({
   },
   photoContainer: {
     alignItems: 'center',
+    backgroundColor: '#f9f9f9',
+    padding: 10,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#e0e0e0',
+    borderStyle: 'dashed',
   },
   photo: {
     width: responsiveDimensions.isMobile ? 200 : 250,
     height: responsiveDimensions.isMobile ? 150 : 180,
     borderRadius: borderRadius.base,
     marginBottom: spacing.base,
+    backgroundColor: '#f0f0f0',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    resizeMode: 'cover',
     ...shadows.base,
   },
   changePhotoButton: {
