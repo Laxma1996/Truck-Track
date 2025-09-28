@@ -498,7 +498,17 @@ export default function DashboardScreen({ navigation }) {
   }
 
   return (
-    <View style={styles.container}>
+    <ScrollView 
+      style={styles.container}
+      contentContainerStyle={styles.scrollContentContainer}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
+      showsVerticalScrollIndicator={true}
+      bounces={true}
+      scrollEnabled={true}
+      {...scrollConfig}
+    >
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
@@ -565,35 +575,23 @@ export default function DashboardScreen({ navigation }) {
         </View>
       </View>
 
-      {/* Jobs List - This should take remaining space */}
+      {/* Jobs List */}
       <View style={styles.jobsContainer}>
         <Text style={styles.jobsTitle}>
           Jobs ({filteredJobs.length})
         </Text>
         
-        <View style={styles.flatListWrapper}>
-          <FlatList
-            data={filteredJobs}
-            keyExtractor={(item, index) => `${item.id}-${index}`}
-            renderItem={renderJobItem}
-            numColumns={responsiveDimensions.isMobile ? 1 : (responsiveDimensions.isTablet ? 2 : 3)}
-            key={responsiveDimensions.isMobile ? 1 : (responsiveDimensions.isTablet ? 2 : 3)} // Force re-render when columns change
-            contentContainerStyle={styles.jobsListContainer}
-            style={styles.flatListStyle}
-            refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-            }
-            ListEmptyComponent={renderEmptyState}
-            showsVerticalScrollIndicator={true}
-            nestedScrollEnabled={true}
-            scrollEnabled={true}
-            bounces={true}
-            removeClippedSubviews={false}
-            maxToRenderPerBatch={10}
-            windowSize={10}
-            {...scrollConfig}
-          />
+        {/* Jobs Grid */}
+        <View style={styles.jobsGrid}>
+          {filteredJobs.map((job, index) => (
+            <View key={`${job.id}-${index}`} style={styles.jobCardWrapper}>
+              {renderJobItem({ item: job })}
+            </View>
+          ))}
         </View>
+        
+        {/* Empty State */}
+        {filteredJobs.length === 0 && renderEmptyState()}
       </View>
 
       {/* Status Filter Modal */}
@@ -914,7 +912,7 @@ export default function DashboardScreen({ navigation }) {
           </View>
         </View>
       </Modal>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -922,27 +920,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background.secondary,
-    height: '100vh',
-  },
-  scrollableContent: {
-    flex: 1,
-    backgroundColor: colors.background.secondary,
-    height: '100%',
   },
   scrollContentContainer: {
+    flexGrow: 1,
     paddingBottom: getResponsivePixels(48, 64, 80),
-    flexGrow: 1,
-  },
-  jobsListContainer: {
-    paddingBottom: getResponsivePixels(64, 80, 96),
-    paddingHorizontal: getResponsivePixels(8, 12, 16),
-    paddingTop: getResponsivePixels(12, 16, 20),
-    flexGrow: 1,
-    // Force scrolling in case CSS overrides don't work
-    ...(Platform.OS === 'web' && {
-      overflowY: 'auto',
-      flexBasis: 'auto',
-    }),
+    minHeight: '100vh',
   },
   loadingContainer: {
     flex: 1,
@@ -1074,7 +1056,6 @@ const styles = StyleSheet.create({
     color: colors.text.muted,
   },
   jobsContainer: {
-    flex: 1,
     paddingHorizontal: getResponsivePixels(16, 20, 24),
     paddingTop: getResponsivePixels(12, 16, 20),
     paddingBottom: getResponsivePixels(16, 20, 24),
@@ -1082,26 +1063,22 @@ const styles = StyleSheet.create({
     maxWidth: containerWidths.maxWidth,
     width: '100%',
     alignSelf: 'center',
-    height: '100%',
   },
-  flatListWrapper: {
-    flex: 1,
+  jobsGrid: {
     width: '100%',
-    height: '100%',
-    overflowY: 'auto',
-    overflowX: 'hidden',
-    WebkitOverflowScrolling: 'touch',
-    // Additional deployment-safe scrolling
-    ...(Platform.OS === 'web' && {
-      flexBasis: 'auto',
-    }),
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
+    gap: getResponsivePixels(12, 16, 20),
   },
-  flatListStyle: {
-    flex: 1,
-    width: '100%',
-    overflowY: 'auto',
-    overflowX: 'hidden',
-    WebkitOverflowScrolling: 'touch',
+  jobCardWrapper: {
+    width: responsiveDimensions.isMobile ? '100%' : 
+           responsiveDimensions.isTablet ? '48%' : 
+           '31%',
+    minWidth: responsiveDimensions.isMobile ? '100%' : 280,
+    maxWidth: responsiveDimensions.isMobile ? '100%' : 400,
+    marginBottom: getResponsivePixels(12, 16, 20),
   },
   jobsTitle: {
     fontSize: getResponsiveValue(20, 24, 28),
@@ -1124,19 +1101,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: getResponsiveValue(22, 25, 28),
   },
-  jobsGrid: {
-    ...getGridStyle(3),
-    width: '100%',
-    maxWidth: containerWidths.maxWidth,
-  },
   jobCard: {
     backgroundColor: colors.background.primary,
     borderRadius: getResponsivePixels(8, 12, 16),
     padding: getResponsivePixels(16, 20, 24),
-    marginBottom: getResponsivePixels(24, 32, 40),
-    marginHorizontal: getResponsivePixels(4, 8, 12),
+    marginBottom: getResponsivePixels(12, 16, 20),
     ...getResponsiveShadows().medium,
-    flex: 1,
+    width: '100%',
     borderWidth: 1,
     borderColor: colors.border.light,
     transition: 'all 0.2s ease-in-out',
