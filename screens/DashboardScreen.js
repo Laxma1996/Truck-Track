@@ -14,6 +14,7 @@ import {
   ActivityIndicator,
   Platform,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { jobService } from '../services/firebaseService';
@@ -56,9 +57,7 @@ export default function DashboardScreen({ navigation }) {
   const [selectedJob, setSelectedJob] = useState(null);
   const [currentUser, setCurrentUser] = useState('');
   const [userRole, setUserRole] = useState('');
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [hasMoreJobs, setHasMoreJobs] = useState(true);
-  const [page, setPage] = useState(1);
+  // Removed pagination state variables
   const [allJobs, setAllJobs] = useState([]);
   const [editingJob, setEditingJob] = useState(null);
   const [editForm, setEditForm] = useState({
@@ -108,6 +107,14 @@ export default function DashboardScreen({ navigation }) {
     loadJobs();
   }, []);
 
+  // Refresh jobs when screen comes into focus (e.g., returning from LoggingScreen)
+  useFocusEffect(
+    React.useCallback(() => {
+      console.log('🔄 Dashboard screen focused - refreshing jobs');
+      loadJobs();
+    }, [])
+  );
+
   useEffect(() => {
     filterJobs();
   }, [allJobs, searchQuery, statusFilter]);
@@ -132,11 +139,7 @@ export default function DashboardScreen({ navigation }) {
     try {
       console.log('🔄 Loading jobs - page:', pageNum, 'isRefresh:', isRefresh);
       
-      if (pageNum === 1) {
-        setIsLoading(true);
-      } else {
-        setIsLoadingMore(true);
-      }
+      setIsLoading(true);
       
       const userId = await AsyncStorage.getItem('truckTrackerUserId');
       console.log('👤 User ID from storage:', userId);
@@ -150,26 +153,11 @@ export default function DashboardScreen({ navigation }) {
 
       const result = await jobService.getUserJobs(userId);
       
-      
       if (result.success) {
-        
-        const jobsPerPage = 10;
-        const startIndex = (pageNum - 1) * jobsPerPage;
-        const endIndex = startIndex + jobsPerPage;
-        const paginatedJobs = result.jobs.slice(startIndex, endIndex);
-        
-        if (isRefresh || pageNum === 1) {
-          setAllJobs(result.jobs);
-          setJobs(result.jobs); // Set jobs to all jobs for consistency
-          console.log('🔄 Set all jobs and jobs state to:', result.jobs.length, 'items');
-        } else {
-          setAllJobs(prev => [...prev, ...paginatedJobs]);
-          setJobs(prev => [...prev, ...paginatedJobs]);
-          console.log('➕ Added paginated jobs to existing jobs');
-        }
-        
-        setHasMoreJobs(endIndex < result.jobs.length);
-        setPage(pageNum);
+        // Set all jobs for the user
+        setAllJobs(result.jobs);
+        setJobs(result.jobs);
+        console.log('🔄 Set all jobs to:', result.jobs.length, 'items');
       } else {
         console.log('❌ Failed to load jobs:', result.message);
         Alert.alert('Error', 'Failed to load jobs');
@@ -179,7 +167,6 @@ export default function DashboardScreen({ navigation }) {
       Alert.alert('Error', 'Failed to load jobs');
     } finally {
       setIsLoading(false);
-      setIsLoadingMore(false);
     }
   };
 
@@ -191,17 +178,7 @@ export default function DashboardScreen({ navigation }) {
   };
 
 
-  const handleLoadMore = () => {
-    if (!isLoadingMore && hasMoreJobs) {
-      loadMoreJobs();
-    }
-  };
-
-  const loadMoreJobs = async () => {
-    if (!isLoadingMore && hasMoreJobs) {
-      await loadJobs(page + 1);
-    }
-  };
+  // Removed pagination logic since we load all user jobs at once
 
   const filterJobs = () => {
     let filtered = [...allJobs];
@@ -510,27 +487,7 @@ export default function DashboardScreen({ navigation }) {
     </View>
   );
 
-  // Render footer with loading indicator
-  const renderFooter = () => {
-    if (isLoadingMore) {
-      return (
-        <View style={styles.loadingMoreContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={styles.loadingMoreText}>Loading more jobs...</Text>
-        </View>
-      );
-    }
-    
-    if (!hasMoreJobs && filteredJobs.length > 0) {
-      return (
-        <View style={styles.endOfListContainer}>
-          <Text style={styles.endOfListText}>You've reached the end of the list</Text>
-        </View>
-      );
-    }
-    
-    return null;
-  };
+  // Removed renderFooter since we're not using pagination
 
   if (isLoading) {
     return (
@@ -617,7 +574,7 @@ export default function DashboardScreen({ navigation }) {
         <View style={styles.flatListWrapper}>
           <FlatList
             data={filteredJobs}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item, index) => `${item.id}-${index}`}
             renderItem={renderJobItem}
             numColumns={responsiveDimensions.isMobile ? 1 : (responsiveDimensions.isTablet ? 2 : 3)}
             key={responsiveDimensions.isMobile ? 1 : (responsiveDimensions.isTablet ? 2 : 3)} // Force re-render when columns change
@@ -626,10 +583,7 @@ export default function DashboardScreen({ navigation }) {
             refreshControl={
               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             }
-            onEndReached={handleLoadMore}
-            onEndReachedThreshold={0.5}
             ListEmptyComponent={renderEmptyState}
-            ListFooterComponent={renderFooter}
             showsVerticalScrollIndicator={true}
             nestedScrollEnabled={true}
             scrollEnabled={true}
