@@ -61,6 +61,15 @@ export default function LoggingScreen({ navigation }) {
     });
   }, [photo]);
 
+  // Debug dropdown modal state changes
+  useEffect(() => {
+    console.log('📋 Activity modal state changed:', isActivityModalVisible);
+  }, [isActivityModalVisible]);
+
+  useEffect(() => {
+    console.log('🚛 Truck type modal state changed:', isTruckTypeModalVisible);
+  }, [isTruckTypeModalVisible]);
+
   const cleanupIncompleteJobs = async () => {
     try {
       const result = await jobService.cleanupIncompleteJobs();
@@ -227,30 +236,88 @@ export default function LoggingScreen({ navigation }) {
   const selectFromGallery = async () => {
     try {
       console.log('🖼️ Starting gallery selection...');
+      console.log('🔍 ImagePicker available methods:', Object.keys(ImagePicker));
       
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      // Check current permission status first
+      const currentStatus = await ImagePicker.getMediaLibraryPermissionsAsync();
+      console.log('📋 Current gallery permission status:', currentStatus);
       
-      if (status !== 'granted') {
-        Alert.alert('Permission Required', 'Gallery permission is needed to select photos');
+      let permissionResult;
+      if (currentStatus.status !== 'granted') {
+        console.log('🔐 Requesting gallery permissions...');
+        permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        console.log('🔐 Permission request result:', permissionResult);
+      } else {
+        permissionResult = currentStatus;
+      }
+      
+      if (permissionResult.status !== 'granted') {
+        console.log('❌ Gallery permission denied');
+        Alert.alert(
+          'Permission Required', 
+          'Gallery permission is needed to select photos. Please enable it in your device settings.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Settings', onPress: () => {
+              // On web, we can't open settings, so just show a message
+              if (typeof window !== 'undefined') {
+                Alert.alert('Info', 'Please enable camera/gallery permissions in your browser settings');
+              }
+            }}
+          ]
+        );
         return;
       }
 
-      // Optimized options for better compatibility
+      console.log('✅ Gallery permission granted');
+
+      // Very basic options for maximum compatibility
       const pickerOptions = {
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [4, 3],
         quality: 0.8,
-        base64: true, // Request base64 for better compatibility
-        exif: false, // Disable EXIF to avoid issues
       };
+      
+      console.log('🖼️ Using basic picker options:', pickerOptions);
       
       console.log('🖼️ Launching gallery with options:', pickerOptions);
       
-      const result = await ImagePicker.launchImageLibraryAsync(pickerOptions);
+      let result;
+      try {
+        result = await ImagePicker.launchImageLibraryAsync(pickerOptions);
+      } catch (pickerError) {
+        console.error('❌ Gallery picker launch error:', pickerError);
+        // Try with minimal options as fallback
+        console.log('🔄 Trying gallery with minimal options...');
+        const minimalOptions = {
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        };
+        result = await ImagePicker.launchImageLibraryAsync(minimalOptions);
+      }
+      
+      console.log('🖼️ Gallery picker result:', {
+        canceled: result.canceled,
+        hasAssets: !!result.assets,
+        assetsLength: result.assets ? result.assets.length : 0,
+        error: result.error
+      });
+
+      if (result.error) {
+        console.error('❌ Gallery picker error:', result.error);
+        Alert.alert('Error', `Gallery error: ${result.error}`);
+        return;
+      }
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const photoAsset = result.assets[0];
+        console.log('📸 Gallery photo asset:', {
+          uri: photoAsset.uri,
+          hasBase64: !!photoAsset.base64,
+          width: photoAsset.width,
+          height: photoAsset.height,
+          type: photoAsset.type,
+          fileName: photoAsset.fileName
+        });
+        
         const processedPhoto = await processPhotoAsset(photoAsset, 'gallery');
         setPhoto(processedPhoto);
         console.log('✅ Gallery photo selected and processed successfully');
@@ -712,7 +779,10 @@ export default function LoggingScreen({ navigation }) {
             <Text style={styles.label}>Select Activity *</Text>
             <TouchableOpacity 
               style={styles.dropdown}
-              onPress={() => setIsActivityModalVisible(true)}
+              onPress={() => {
+                console.log('📋 Activity dropdown pressed - opening modal');
+                setIsActivityModalVisible(true);
+              }}
             >
               <Text style={[styles.dropdownText, !activity && styles.placeholder]}>
                 {activity || 'Select activity...'}
@@ -726,7 +796,10 @@ export default function LoggingScreen({ navigation }) {
             <Text style={styles.label}>Select Truck Type *</Text>
             <TouchableOpacity 
               style={styles.dropdown}
-              onPress={() => setIsTruckTypeModalVisible(true)}
+              onPress={() => {
+                console.log('🚛 Truck type dropdown pressed - opening modal');
+                setIsTruckTypeModalVisible(true);
+              }}
             >
               <Text style={[styles.dropdownText, !truckType && styles.placeholder]}>
                 {truckType || 'Select truck type...'}
@@ -823,8 +896,13 @@ export default function LoggingScreen({ navigation }) {
             </TouchableOpacity>
             
             <TouchableOpacity style={styles.modalButton} onPress={() => {
+              console.log('🖼️ Gallery button pressed - closing modal and calling selectFromGallery');
               setIsModalVisible(false);
-              selectFromGallery();
+              // Add a small delay to ensure modal closes before opening gallery
+              setTimeout(() => {
+                console.log('🖼️ Calling selectFromGallery after modal close');
+                selectFromGallery();
+              }, 100);
             }}>
               <Text style={styles.modalButtonText}>Choose from Gallery</Text>
             </TouchableOpacity>
@@ -844,13 +922,20 @@ export default function LoggingScreen({ navigation }) {
         visible={isActivityModalVisible}
         transparent={true}
         animationType="fade"
-        onRequestClose={() => setIsActivityModalVisible(false)}
+        onRequestClose={() => {
+          console.log('📋 Activity modal closed via onRequestClose');
+          setIsActivityModalVisible(false);
+        }}
       >
-        <TouchableOpacity 
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setIsActivityModalVisible(false)}
-        >
+        <View style={styles.modalOverlay}>
+          <TouchableOpacity 
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={() => {
+              console.log('📋 Activity modal overlay pressed - closing modal');
+              setIsActivityModalVisible(false);
+            }}
+          />
           <View style={styles.dropdownModal}>
             <Text style={styles.dropdownTitle}>Select Activity</Text>
             
@@ -863,8 +948,10 @@ export default function LoggingScreen({ navigation }) {
                     activity === activityItem && styles.dropdownItemSelected
                   ]} 
                   onPress={() => {
+                    console.log('📋 Activity selected:', activityItem);
                     setActivity(activityItem);
                     setIsActivityModalVisible(false);
+                    console.log('📋 Activity modal closed after selection');
                   }}
                 >
                   <Text style={[
@@ -875,7 +962,7 @@ export default function LoggingScreen({ navigation }) {
               ))}
             </ScrollView>
           </View>
-        </TouchableOpacity>
+        </View>
       </Modal>
 
       {/* Truck Type Selection Modal */}
@@ -883,13 +970,20 @@ export default function LoggingScreen({ navigation }) {
         visible={isTruckTypeModalVisible}
         transparent={true}
         animationType="fade"
-        onRequestClose={() => setIsTruckTypeModalVisible(false)}
+        onRequestClose={() => {
+          console.log('🚛 Truck type modal closed via onRequestClose');
+          setIsTruckTypeModalVisible(false);
+        }}
       >
-        <TouchableOpacity 
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setIsTruckTypeModalVisible(false)}
-        >
+        <View style={styles.modalOverlay}>
+          <TouchableOpacity 
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={() => {
+              console.log('🚛 Truck type modal overlay pressed - closing modal');
+              setIsTruckTypeModalVisible(false);
+            }}
+          />
           <View style={styles.dropdownModal}>
             <Text style={styles.dropdownTitle}>Select Truck Type</Text>
             
@@ -902,8 +996,10 @@ export default function LoggingScreen({ navigation }) {
                     truckType === type && styles.dropdownItemSelected
                   ]} 
                   onPress={() => {
+                    console.log('🚛 Truck type selected:', type);
                     setTruckType(type);
                     setIsTruckTypeModalVisible(false);
+                    console.log('🚛 Truck type modal closed after selection');
                   }}
                 >
                   <Text style={[
@@ -914,7 +1010,7 @@ export default function LoggingScreen({ navigation }) {
               ))}
             </ScrollView>
           </View>
-        </TouchableOpacity>
+        </View>
       </Modal>
 
       {/* Success Modal */}

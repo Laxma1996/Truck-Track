@@ -120,6 +120,15 @@ export default function DashboardScreen({ navigation }) {
     filterJobs();
   }, [allJobs, searchQuery, statusFilter]);
 
+  // Debug dropdown state changes
+  useEffect(() => {
+    console.log('🔽 Status dropdown visibility changed:', isStatusDropdownVisible);
+  }, [isStatusDropdownVisible]);
+
+  useEffect(() => {
+    console.log('🔽 Status filter changed:', statusFilter);
+  }, [statusFilter]);
+
   const checkAuthentication = async () => {
     try {
       const username = await AsyncStorage.getItem('truckTrackerUser');
@@ -533,17 +542,18 @@ export default function DashboardScreen({ navigation }) {
   }
 
   return (
-    <ScrollView 
-      style={styles.container}
-      contentContainerStyle={styles.scrollContentContainer}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-      }
-      showsVerticalScrollIndicator={true}
-      bounces={true}
-      scrollEnabled={true}
-      {...scrollConfig}
-    >
+    <TouchableWithoutFeedback onPress={() => setIsStatusDropdownVisible(false)}>
+      <ScrollView 
+        style={styles.container}
+        contentContainerStyle={styles.scrollContentContainer}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+        showsVerticalScrollIndicator={true}
+        bounces={true}
+        scrollEnabled={true}
+        {...scrollConfig}
+      >
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
@@ -581,8 +591,7 @@ export default function DashboardScreen({ navigation }) {
       </View>
 
       {/* Filters */}
-      <TouchableWithoutFeedback onPress={() => setIsStatusDropdownVisible(false)}>
-        <View style={styles.filtersContainer}>
+      <View style={styles.filtersContainer}>
           <Text style={styles.filtersTitle}>Filters</Text>
           
           {/* Filters Row - Side by Side */}
@@ -602,7 +611,11 @@ export default function DashboardScreen({ navigation }) {
             <View style={styles.statusFilterContainer}>
               <TouchableOpacity 
                 style={styles.statusFilter}
-                onPress={() => setIsStatusDropdownVisible(!isStatusDropdownVisible)}
+                onPress={() => {
+                  console.log('🔽 Status filter dropdown clicked, current state:', isStatusDropdownVisible);
+                  setIsStatusDropdownVisible(!isStatusDropdownVisible);
+                  console.log('🔽 Status filter dropdown state changed to:', !isStatusDropdownVisible);
+                }}
               >
                 <Text style={styles.statusFilterText}>
                   {statusOptions.find(opt => opt.value === statusFilter)?.label || 'All Jobs'}
@@ -612,35 +625,55 @@ export default function DashboardScreen({ navigation }) {
                 </Text>
               </TouchableOpacity>
               
-              {/* Inline Dropdown */}
-              {isStatusDropdownVisible && (
-                <View style={styles.statusDropdown}>
-                  {statusOptions.map((option) => (
-                    <TouchableOpacity
-                      key={option.value}
-                      style={[
-                        styles.statusDropdownOption,
-                        statusFilter === option.value && styles.statusDropdownOptionSelected
-                      ]}
-                      onPress={() => {
-                        setStatusFilter(option.value);
-                        setIsStatusDropdownVisible(false);
-                      }}
-                    >
-                      <Text style={[
-                        styles.statusDropdownOptionText,
-                        statusFilter === option.value && styles.statusDropdownOptionTextSelected
-                      ]}>
-                        {option.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              )}
             </View>
           </View>
         </View>
-      </TouchableWithoutFeedback>
+
+      {/* Status Filter Modal */}
+      <Modal
+        visible={isStatusDropdownVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setIsStatusDropdownVisible(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => setIsStatusDropdownVisible(false)}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.statusModal}>
+              <Text style={styles.modalTitle}>Select Status Filter</Text>
+              
+              {statusOptions.map((option) => (
+                <TouchableOpacity
+                  key={option.value}
+                  style={[
+                    styles.statusOption,
+                    statusFilter === option.value && styles.statusOptionSelected
+                  ]}
+                  onPress={() => {
+                    console.log('🔽 Status option selected:', option.value, option.label);
+                    setStatusFilter(option.value);
+                    setIsStatusDropdownVisible(false);
+                    console.log('🔽 Status filter updated and dropdown closed');
+                  }}
+                >
+                  <Text style={[
+                    styles.statusOptionText,
+                    statusFilter === option.value && styles.statusOptionTextSelected
+                  ]}>
+                    {option.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+              
+              <TouchableOpacity 
+                style={styles.cancelButton}
+                onPress={() => setIsStatusDropdownVisible(false)}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
 
       {/* Jobs List */}
       <View style={styles.jobsContainer}>
@@ -944,6 +977,7 @@ export default function DashboardScreen({ navigation }) {
         </View>
       </Modal>
     </ScrollView>
+    </TouchableWithoutFeedback>
   );
 }
 
@@ -1069,6 +1103,7 @@ const styles = StyleSheet.create({
     flex: getResponsiveValue(0, 1, 1),
     minWidth: getResponsiveValue('100%', 200, 240),
     position: 'relative',
+    zIndex: 1000, // Ensure container has proper z-index
   },
   statusFilter: {
     flexDirection: 'row',
@@ -1105,7 +1140,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 0,
     borderBottomLeftRadius: getResponsivePixels(6, 8, 10),
     borderBottomRightRadius: getResponsivePixels(6, 8, 10),
-    ...getResponsiveShadows().medium,
     marginTop: -1,
     elevation: 3, // For Android shadow
     shadowColor: '#000', // For iOS shadow
@@ -1130,6 +1164,63 @@ const styles = StyleSheet.create({
   statusDropdownOptionTextSelected: {
     color: colors.primary,
     fontWeight: '600',
+  },
+  // Status Filter Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  statusModal: {
+    backgroundColor: colors.background.primary,
+    borderRadius: getResponsivePixels(12, 16, 20),
+    padding: getResponsivePixels(20, 24, 32),
+    width: '85%',
+    maxWidth: 400,
+    alignSelf: 'center',
+    ...getResponsiveShadows().xl,
+  },
+  modalTitle: {
+    fontSize: getResponsiveValue(18, 20, 24),
+    fontWeight: '600',
+    color: colors.text.primary,
+    marginBottom: getResponsivePixels(16, 20, 24),
+    textAlign: 'center',
+  },
+  statusOption: {
+    padding: getResponsivePixels(12, 14, 16),
+    paddingHorizontal: getResponsivePixels(16, 18, 20),
+    borderRadius: getResponsivePixels(8, 10, 12),
+    marginBottom: getResponsivePixels(8, 10, 12),
+    backgroundColor: colors.background.secondary,
+    borderWidth: 1,
+    borderColor: colors.border.light,
+  },
+  statusOptionSelected: {
+    backgroundColor: colors.primaryLight + '20',
+    borderColor: colors.primary,
+  },
+  statusOptionText: {
+    fontSize: getResponsiveValue(14, 16, 18),
+    color: colors.text.primary,
+    textAlign: 'center',
+  },
+  statusOptionTextSelected: {
+    color: colors.primary,
+    fontWeight: '600',
+  },
+  cancelButton: {
+    marginTop: getResponsivePixels(16, 20, 24),
+    padding: getResponsivePixels(12, 14, 16),
+    backgroundColor: colors.gray[300],
+    borderRadius: getResponsivePixels(8, 10, 12),
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    fontSize: getResponsiveValue(14, 16, 18),
+    color: colors.text.primary,
+    fontWeight: '500',
   },
   jobsContainer: {
     paddingHorizontal: getResponsivePixels(16, 20, 24),
