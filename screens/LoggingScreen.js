@@ -150,7 +150,7 @@ export default function LoggingScreen({ navigation }) {
     }
   };
 
-  // Universal photo processing function
+  // Universal photo processing function with compression
   const processPhotoAsset = async (photoAsset, source) => {
     try {
       console.log(`📸 Processing ${source} photo:`, {
@@ -162,6 +162,15 @@ export default function LoggingScreen({ navigation }) {
         fileName: photoAsset.fileName
       });
 
+      // Check if photo is too large and needs compression
+      const isLargePhoto = photoAsset.width > 2000 || photoAsset.height > 2000;
+      console.log('📏 Photo size check:', {
+        width: photoAsset.width,
+        height: photoAsset.height,
+        isLargePhoto,
+        estimatedSize: photoAsset.base64 ? Math.round(photoAsset.base64.length / 1024) + 'KB' : 'Unknown'
+      });
+
       // Create a standardized photo object
       const processedPhoto = {
         uri: photoAsset.uri,
@@ -170,7 +179,8 @@ export default function LoggingScreen({ navigation }) {
         height: photoAsset.height,
         type: photoAsset.type || 'image/jpeg',
         fileName: photoAsset.fileName || `photo_${Date.now()}.jpg`,
-        source: source // 'camera' or 'gallery'
+        source: source, // 'camera' or 'gallery'
+        isLargePhoto: isLargePhoto
       };
 
       // If no base64 is provided, we'll use the URI as is
@@ -178,12 +188,16 @@ export default function LoggingScreen({ navigation }) {
       if (!processedPhoto.base64) {
         console.log('⚠️ No base64 data provided, using URI directly');
         console.log('URI format:', processedPhoto.uri.substring(0, 50) + '...');
+      } else if (isLargePhoto) {
+        console.log('⚠️ Large photo detected - may cause issues with Firebase storage');
+        console.log('Base64 size:', Math.round(photoAsset.base64.length / 1024) + 'KB');
       }
 
       console.log('✅ Photo processed successfully:', {
         hasUri: !!processedPhoto.uri,
         hasBase64: !!processedPhoto.base64,
-        source: processedPhoto.source
+        source: processedPhoto.source,
+        isLargePhoto: processedPhoto.isLargePhoto
       });
 
       return processedPhoto;
@@ -204,12 +218,12 @@ export default function LoggingScreen({ navigation }) {
         return;
       }
 
-      // Optimized options for better compatibility
+      // Optimized options for better compatibility with compression
       const pickerOptions = {
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [4, 3],
-        quality: 0.8,
+        quality: 0.6, // Reduced quality for smaller file size
         base64: true, // Request base64 for better compatibility
         exif: false, // Disable EXIF to avoid issues
       };
@@ -271,10 +285,10 @@ export default function LoggingScreen({ navigation }) {
 
       console.log('✅ Gallery permission granted');
 
-      // Very basic options for maximum compatibility
+      // Very basic options for maximum compatibility with compression
       const pickerOptions = {
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        quality: 0.8,
+        quality: 0.6, // Reduced quality for smaller file size
       };
       
       console.log('🖼️ Using basic picker options:', pickerOptions);
@@ -452,10 +466,19 @@ export default function LoggingScreen({ navigation }) {
       let photoData = photo.uri;
       
       if (photo.base64) {
-        // If base64 is available, create a proper data URL
-        const imageType = photo.type || 'image/jpeg';
-        photoData = `data:${imageType};base64,${photo.base64}`;
-        console.log('📸 Using base64 data for photo');
+        // Check if base64 data is too large for Firebase
+        const base64SizeKB = Math.round(photo.base64.length / 1024);
+        console.log('📏 Base64 photo size:', base64SizeKB + 'KB');
+        
+        if (base64SizeKB > 10000) { // 10MB limit
+          console.log('⚠️ Photo too large for Firebase storage, using URI instead');
+          photoData = photo.uri;
+        } else {
+          // If base64 is available and not too large, create a proper data URL
+          const imageType = photo.type || 'image/jpeg';
+          photoData = `data:${imageType};base64,${photo.base64}`;
+          console.log('📸 Using base64 data for photo');
+        }
       } else {
         // Use URI directly - it should work for most cases
         photoData = photo.uri;
@@ -467,8 +490,10 @@ export default function LoggingScreen({ navigation }) {
         originalUri: photo.uri,
         hasBase64: !!photo.base64,
         type: photo.type || 'unknown',
+        isLargePhoto: photo.isLargePhoto || false,
         finalPhotoData: photoData ? photoData.substring(0, 50) + '...' : 'null',
-        dataLength: photoData ? photoData.length : 0
+        dataLength: photoData ? photoData.length : 0,
+        dataLengthKB: photoData ? Math.round(photoData.length / 1024) + 'KB' : '0KB'
       });
 
       const jobData = {
@@ -501,13 +526,27 @@ export default function LoggingScreen({ navigation }) {
         truckType: jobData.truckType,
         weight: jobData.weight,
         photoLength: jobData.photo ? jobData.photo.length : 0,
+        photoSizeKB: jobData.photo ? Math.round(jobData.photo.length / 1024) + 'KB' : '0KB',
         photoPreview: jobData.photo ? jobData.photo.substring(0, 50) + '...' : 'null'
       });
       
-      
-      
-      const result = await jobService.saveJob(jobData);
-      console.log('🔥 Firebase save result:', result);
+      let result;
+      try {
+        result = await jobService.saveJob(jobData);
+        console.log('🔥 Firebase save result:', result);
+        
+        if (!result.success) {
+          console.error('❌ Firebase save failed:', result.error);
+          Alert.alert('Save Error', `Failed to save job: ${result.error || 'Unknown error'}`);
+          setIsLoading(false);
+          return;
+        }
+      } catch (firebaseError) {
+        console.error('❌ Firebase save error:', firebaseError);
+        Alert.alert('Save Error', `Failed to save job: ${firebaseError.message || 'Unknown error'}`);
+        setIsLoading(false);
+        return;
+      }
       
       if (result.success) {
         console.log('✅ Job saved successfully to Firebase!');
