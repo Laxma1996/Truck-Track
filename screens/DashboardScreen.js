@@ -205,6 +205,13 @@ export default function DashboardScreen({ navigation }) {
       filtered = filtered.filter(job => job.status === statusFilter);
     }
 
+    // Sort by date/time - latest first (descending order)
+    filtered.sort((a, b) => {
+      const dateA = new Date(a.createdAt || a.savedAt || 0);
+      const dateB = new Date(b.createdAt || b.savedAt || 0);
+      return dateB - dateA; // Latest first
+    });
+
     setFilteredJobs(filtered);
   };
 
@@ -678,7 +685,7 @@ export default function DashboardScreen({ navigation }) {
       {/* Jobs List */}
       <View style={styles.jobsContainer}>
         <Text style={styles.jobsTitle}>
-          Jobs ({filteredJobs.length})
+          📅 Jobs ({filteredJobs.length}) - Latest First
         </Text>
         
         {/* Jobs Grid */}

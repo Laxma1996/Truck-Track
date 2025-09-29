@@ -9,6 +9,7 @@ import {
   ScrollView,
   Image,
   Modal,
+  Platform,
 } from 'react-native';
 import { Card, Title, Paragraph, Button } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
@@ -44,6 +45,8 @@ export default function LoggingScreen({ navigation }) {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccessModalVisible, setIsSuccessModalVisible] = useState(false);
   const [savedJobData, setSavedJobData] = useState(null);
+  const [isCameraModalVisible, setIsCameraModalVisible] = useState(false);
+  const [cameraStream, setCameraStream] = useState(null);
 
   useEffect(() => {
     checkAuthentication();
@@ -69,6 +72,14 @@ export default function LoggingScreen({ navigation }) {
   useEffect(() => {
     console.log('🚛 Truck type modal state changed:', isTruckTypeModalVisible);
   }, [isTruckTypeModalVisible]);
+
+  useEffect(() => {
+    if (isCameraModalVisible) {
+      startCamera();
+    } else {
+      stopCamera();
+    }
+  }, [isCameraModalVisible]);
 
   const cleanupIncompleteJobs = async () => {
     try {
@@ -210,30 +221,82 @@ export default function LoggingScreen({ navigation }) {
   const takePhoto = async () => {
     try {
       console.log('📷 Starting camera capture...');
+      console.log('🌐 Platform:', Platform.OS);
+      
+      // Check if we're on web and handle accordingly
+      const isWeb = Platform.OS === 'web';
+      console.log('🌐 Is web platform:', isWeb);
+      
+      if (isWeb) {
+        // For web, show camera modal
+        console.log('🌐 Web platform detected - opening camera modal');
+        setIsCameraModalVisible(true);
+        return;
+      }
+      
+      // Debug ImagePicker availability
+      console.log('🔍 ImagePicker methods available:', {
+        launchCameraAsync: typeof ImagePicker.launchCameraAsync,
+        launchImageLibraryAsync: typeof ImagePicker.launchImageLibraryAsync,
+        requestCameraPermissionsAsync: typeof ImagePicker.requestCameraPermissionsAsync,
+        MediaTypeOptions: ImagePicker.MediaTypeOptions
+      });
       
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      console.log('📷 Camera permission status:', status);
       
       if (status !== 'granted') {
-        Alert.alert('Permission Required', 'Camera permission is needed to take photos');
+        console.log('❌ Camera permission denied');
+        Alert.alert('Permission Required', 'Camera permission is needed to take photos. Please enable camera access in your browser settings.');
         return;
       }
 
-      // Optimized options for better compatibility with compression
+      // Simplified options for maximum compatibility
       const pickerOptions = {
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [4, 3],
-        quality: 0.6, // Reduced quality for smaller file size
-        base64: true, // Request base64 for better compatibility
-        exif: false, // Disable EXIF to avoid issues
+        quality: 0.6,
+        base64: true,
       };
       
       console.log('📷 Launching camera with options:', pickerOptions);
       
-      const result = await ImagePicker.launchCameraAsync(pickerOptions);
+      let result;
+      try {
+        result = await ImagePicker.launchCameraAsync(pickerOptions);
+      } catch (cameraError) {
+        console.error('❌ Camera launch error:', cameraError);
+        // Try with minimal options as fallback
+        console.log('🔄 Trying camera with minimal options...');
+        const minimalOptions = {
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        };
+        result = await ImagePicker.launchCameraAsync(minimalOptions);
+      }
+
+      console.log('📷 Camera result:', {
+        canceled: result.canceled,
+        hasAssets: !!result.assets,
+        assetsLength: result.assets ? result.assets.length : 0,
+        error: result.error
+      });
+
+      if (result.error) {
+        console.error('❌ Camera error:', result.error);
+        Alert.alert('Camera Error', `Camera error: ${result.error}`);
+        return;
+      }
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const photoAsset = result.assets[0];
+        console.log('📸 Camera photo asset:', {
+          uri: photoAsset.uri,
+          hasBase64: !!photoAsset.base64,
+          width: photoAsset.width,
+          height: photoAsset.height,
+          type: photoAsset.type,
+          fileName: photoAsset.fileName
+        });
+        
         const processedPhoto = await processPhotoAsset(photoAsset, 'camera');
         setPhoto(processedPhoto);
         console.log('✅ Camera photo captured and processed successfully');
@@ -247,9 +310,148 @@ export default function LoggingScreen({ navigation }) {
     }
   };
 
+  const startCamera = async () => {
+    try {
+      console.log('📷 Starting camera...');
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { 
+          facingMode: 'environment',
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
+        } 
+      });
+      
+      console.log('📷 Camera stream obtained successfully');
+      setCameraStream(stream);
+      
+      // Set up video element
+      const video = document.getElementById('camera-video');
+      if (video) {
+        video.srcObject = stream;
+        video.play();
+      }
+    } catch (error) {
+      console.error('❌ Camera error:', error);
+      Alert.alert('Camera Error', 'Failed to access camera: ' + error.message);
+      setIsCameraModalVisible(false);
+    }
+  };
+
+  const stopCamera = () => {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => track.stop());
+      setCameraStream(null);
+    }
+  };
+
+  const capturePhoto = () => {
+    try {
+      const video = document.getElementById('camera-video');
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+      
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      
+      const dataURL = canvas.toDataURL('image/jpeg', 0.8);
+      const base64 = dataURL.split(',')[1];
+      
+      const photoAsset = {
+        uri: dataURL,
+        base64: base64,
+        width: canvas.width,
+        height: canvas.height,
+        type: 'image/jpeg',
+        fileName: `camera_${Date.now()}.jpg`
+      };
+      
+      console.log('📸 Photo captured:', {
+        width: photoAsset.width,
+        height: photoAsset.height,
+        size: base64.length
+      });
+      
+      processPhotoAsset(photoAsset, 'camera').then(processedPhoto => {
+        setPhoto(processedPhoto);
+        console.log('✅ Camera photo processed successfully');
+        Alert.alert('Success', 'Photo captured successfully!');
+        stopCamera();
+        setIsCameraModalVisible(false);
+      });
+      
+    } catch (error) {
+      console.error('❌ Capture error:', error);
+      Alert.alert('Error', 'Failed to capture photo: ' + error.message);
+    }
+  };
+
   const selectFromGallery = async () => {
     try {
       console.log('🖼️ Starting gallery selection...');
+      console.log('🌐 Platform:', Platform.OS);
+      
+      // Check if we're on web and handle accordingly
+      const isWeb = Platform.OS === 'web';
+      console.log('🌐 Is web platform:', isWeb);
+      
+      if (isWeb) {
+        // For web, we need to use a different approach
+        console.log('🌐 Web platform detected - using file input for gallery access');
+        
+        // Create a file input element for gallery selection
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.multiple = false; // Only allow single file selection
+        
+        input.onchange = async (event) => {
+          const file = event.target.files[0];
+          if (file) {
+            console.log('📸 File selected from gallery:', {
+              name: file.name,
+              size: file.size,
+              type: file.type
+            });
+            
+            // Convert file to base64
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+              const base64 = e.target.result.split(',')[1]; // Remove data:image/...;base64, prefix
+              const photoAsset = {
+                uri: e.target.result,
+                base64: base64,
+                width: 0, // Will be set when image loads
+                height: 0,
+                type: file.type,
+                fileName: file.name
+              };
+              
+              // Get image dimensions
+              const img = new Image();
+              img.onload = () => {
+                photoAsset.width = img.width;
+                photoAsset.height = img.height;
+                console.log('📸 Image dimensions:', { width: img.width, height: img.height });
+                
+                processPhotoAsset(photoAsset, 'gallery').then(processedPhoto => {
+                  setPhoto(processedPhoto);
+                  console.log('✅ Gallery photo selected and processed successfully');
+                  Alert.alert('Success', 'Photo selected successfully!');
+                });
+              };
+              img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+          }
+        };
+        
+        // Trigger the file input
+        input.click();
+        return;
+      }
+      
       console.log('🔍 ImagePicker available methods:', Object.keys(ImagePicker));
       
       // Check current permission status first
@@ -317,7 +519,7 @@ export default function LoggingScreen({ navigation }) {
 
       if (result.error) {
         console.error('❌ Gallery picker error:', result.error);
-        Alert.alert('Error', `Gallery error: ${result.error}`);
+        Alert.alert('Gallery Error', `Gallery error: ${result.error}. Please try again or check your device permissions.`);
         return;
       }
 
@@ -1110,6 +1312,52 @@ export default function LoggingScreen({ navigation }) {
           </View>
         </View>
       </Modal>
+
+      {/* Camera Modal */}
+      <Modal
+        visible={isCameraModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => {
+          stopCamera();
+          setIsCameraModalVisible(false);
+        }}
+      >
+        <View style={styles.cameraModalOverlay}>
+          <View style={styles.cameraModalContent}>
+            <Text style={styles.cameraModalTitle}>📷 Take Photo</Text>
+            
+            <View style={styles.cameraContainer}>
+              <video
+                id="camera-video"
+                style={styles.cameraVideo}
+                autoPlay
+                playsInline
+                muted
+              />
+            </View>
+            
+            <View style={styles.cameraButtons}>
+              <TouchableOpacity 
+                style={[styles.cameraButton, styles.captureButton]} 
+                onPress={capturePhoto}
+              >
+                <Text style={styles.cameraButtonText}>📸 Capture</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.cameraButton, styles.cancelButton]} 
+                onPress={() => {
+                  stopCamera();
+                  setIsCameraModalVisible(false);
+                }}
+              >
+                <Text style={styles.cameraButtonText}>❌ Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -1467,6 +1715,64 @@ const styles = StyleSheet.create({
   dropdownItemTextSelected: {
     color: colors.primary,
     fontWeight: '500',
+  },
+  // Camera Modal Styles
+  cameraModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cameraModalContent: {
+    backgroundColor: colors.background.primary,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    width: '90%',
+    maxWidth: 500,
+    alignItems: 'center',
+  },
+  cameraModalTitle: {
+    fontSize: fontSizes.xl,
+    fontWeight: '600',
+    color: colors.text.primary,
+    marginBottom: spacing.lg,
+    textAlign: 'center',
+  },
+  cameraContainer: {
+    width: '100%',
+    height: 300,
+    backgroundColor: colors.background.secondary,
+    borderRadius: borderRadius.base,
+    overflow: 'hidden',
+    marginBottom: spacing.lg,
+  },
+  cameraVideo: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+  },
+  cameraButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+  },
+  cameraButton: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.base,
+    borderRadius: borderRadius.base,
+    minWidth: 100,
+    alignItems: 'center',
+  },
+  captureButton: {
+    backgroundColor: colors.primary,
+  },
+  cancelButton: {
+    backgroundColor: colors.error,
+  },
+  cameraButtonText: {
+    color: colors.text.white,
+    fontSize: fontSizes.lg,
+    fontWeight: '600',
   },
 });
 
