@@ -234,76 +234,59 @@ export default function LoggingScreen({ navigation }) {
         return;
       }
       
-      // Debug ImagePicker availability
-      console.log('🔍 ImagePicker methods available:', {
-        launchCameraAsync: typeof ImagePicker.launchCameraAsync,
-        launchImageLibraryAsync: typeof ImagePicker.launchImageLibraryAsync,
-        requestCameraPermissionsAsync: typeof ImagePicker.requestCameraPermissionsAsync,
-        MediaTypeOptions: ImagePicker.MediaTypeOptions
-      });
+      // For mobile, use file input with camera capture
+      console.log('📱 Mobile platform detected - using file input for camera access');
       
-      const { status } = await ImagePicker.requestCameraPermissionsAsync();
-      console.log('📷 Camera permission status:', status);
+      // Create a file input element that accepts camera input
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.capture = 'environment'; // This should trigger camera on mobile
       
-      if (status !== 'granted') {
-        console.log('❌ Camera permission denied');
-        Alert.alert('Permission Required', 'Camera permission is needed to take photos. Please enable camera access in your browser settings.');
-        return;
-      }
-
-      // Simplified options for maximum compatibility
-      const pickerOptions = {
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        quality: 0.6,
-        base64: true,
+      input.onchange = async (event) => {
+        const file = event.target.files[0];
+        if (file) {
+          console.log('📸 File selected from camera:', {
+            name: file.name,
+            size: file.size,
+            type: file.type
+          });
+          
+          // Convert file to base64
+          const reader = new FileReader();
+          reader.onload = async (e) => {
+            const base64 = e.target.result.split(',')[1]; // Remove data:image/...;base64, prefix
+            const photoAsset = {
+              uri: e.target.result,
+              base64: base64,
+              width: 0, // Will be set when image loads
+              height: 0,
+              type: file.type,
+              fileName: file.name
+            };
+            
+            // Get image dimensions
+            const img = new Image();
+            img.onload = () => {
+              photoAsset.width = img.width;
+              photoAsset.height = img.height;
+              console.log('📸 Image dimensions:', { width: img.width, height: img.height });
+              
+              processPhotoAsset(photoAsset, 'camera').then(processedPhoto => {
+                setPhoto(processedPhoto);
+                console.log('✅ Camera photo captured and processed successfully');
+                Alert.alert('Success', 'Photo captured successfully!');
+              });
+            };
+            img.src = e.target.result;
+          };
+          reader.readAsDataURL(file);
+        }
       };
       
-      console.log('📷 Launching camera with options:', pickerOptions);
-      
-      let result;
-      try {
-        result = await ImagePicker.launchCameraAsync(pickerOptions);
-      } catch (cameraError) {
-        console.error('❌ Camera launch error:', cameraError);
-        // Try with minimal options as fallback
-        console.log('🔄 Trying camera with minimal options...');
-        const minimalOptions = {
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        };
-        result = await ImagePicker.launchCameraAsync(minimalOptions);
-      }
-
-      console.log('📷 Camera result:', {
-        canceled: result.canceled,
-        hasAssets: !!result.assets,
-        assetsLength: result.assets ? result.assets.length : 0,
-        error: result.error
-      });
-
-      if (result.error) {
-        console.error('❌ Camera error:', result.error);
-        Alert.alert('Camera Error', `Camera error: ${result.error}`);
-        return;
-      }
-
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        const photoAsset = result.assets[0];
-        console.log('📸 Camera photo asset:', {
-          uri: photoAsset.uri,
-          hasBase64: !!photoAsset.base64,
-          width: photoAsset.width,
-          height: photoAsset.height,
-          type: photoAsset.type,
-          fileName: photoAsset.fileName
-        });
-        
-        const processedPhoto = await processPhotoAsset(photoAsset, 'camera');
-        setPhoto(processedPhoto);
-        console.log('✅ Camera photo captured and processed successfully');
-        Alert.alert('Success', 'Photo captured successfully!');
-      } else {
-        console.log('📷 Camera capture cancelled by user');
-      }
+      // Trigger the file input
+      input.click();
+      return;
     } catch (error) {
       console.error('❌ Error taking photo:', error);
       Alert.alert('Error', 'Failed to take photo: ' + error.message);
@@ -452,95 +435,59 @@ export default function LoggingScreen({ navigation }) {
         return;
       }
       
-      console.log('🔍 ImagePicker available methods:', Object.keys(ImagePicker));
+      // For mobile native, also use file input approach for better compatibility
+      console.log('📱 Mobile platform detected - using file input for gallery access');
       
-      // Check current permission status first
-      const currentStatus = await ImagePicker.getMediaLibraryPermissionsAsync();
-      console.log('📋 Current gallery permission status:', currentStatus);
+      // Create a file input element for gallery selection
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.multiple = false;
       
-      let permissionResult;
-      if (currentStatus.status !== 'granted') {
-        console.log('🔐 Requesting gallery permissions...');
-        permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        console.log('🔐 Permission request result:', permissionResult);
-      } else {
-        permissionResult = currentStatus;
-      }
-      
-      if (permissionResult.status !== 'granted') {
-        console.log('❌ Gallery permission denied');
-        Alert.alert(
-          'Permission Required', 
-          'Gallery permission is needed to select photos. Please enable it in your device settings.',
-          [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Settings', onPress: () => {
-              // On web, we can't open settings, so just show a message
-              if (typeof window !== 'undefined') {
-                Alert.alert('Info', 'Please enable camera/gallery permissions in your browser settings');
-              }
-            }}
-          ]
-        );
-        return;
-      }
-
-      console.log('✅ Gallery permission granted');
-
-      // Very basic options for maximum compatibility with compression
-      const pickerOptions = {
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        quality: 0.6, // Reduced quality for smaller file size
+      input.onchange = async (event) => {
+        const file = event.target.files[0];
+        if (file) {
+          console.log('📸 File selected from gallery:', {
+            name: file.name,
+            size: file.size,
+            type: file.type
+          });
+          
+          // Convert file to base64
+          const reader = new FileReader();
+          reader.onload = async (e) => {
+            const base64 = e.target.result.split(',')[1];
+            const photoAsset = {
+              uri: e.target.result,
+              base64: base64,
+              width: 0,
+              height: 0,
+              type: file.type,
+              fileName: file.name
+            };
+            
+            // Get image dimensions
+            const img = new Image();
+            img.onload = () => {
+              photoAsset.width = img.width;
+              photoAsset.height = img.height;
+              console.log('📸 Image dimensions:', { width: img.width, height: img.height });
+              
+              processPhotoAsset(photoAsset, 'gallery').then(processedPhoto => {
+                setPhoto(processedPhoto);
+                console.log('✅ Gallery photo selected and processed successfully');
+                Alert.alert('Success', 'Photo selected successfully!');
+              });
+            };
+            img.src = e.target.result;
+          };
+          reader.readAsDataURL(file);
+        }
       };
       
-      console.log('🖼️ Using basic picker options:', pickerOptions);
-      
-      console.log('🖼️ Launching gallery with options:', pickerOptions);
-      
-      let result;
-      try {
-        result = await ImagePicker.launchImageLibraryAsync(pickerOptions);
-      } catch (pickerError) {
-        console.error('❌ Gallery picker launch error:', pickerError);
-        // Try with minimal options as fallback
-        console.log('🔄 Trying gallery with minimal options...');
-        const minimalOptions = {
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        };
-        result = await ImagePicker.launchImageLibraryAsync(minimalOptions);
-      }
-      
-      console.log('🖼️ Gallery picker result:', {
-        canceled: result.canceled,
-        hasAssets: !!result.assets,
-        assetsLength: result.assets ? result.assets.length : 0,
-        error: result.error
-      });
-
-      if (result.error) {
-        console.error('❌ Gallery picker error:', result.error);
-        Alert.alert('Gallery Error', `Gallery error: ${result.error}. Please try again or check your device permissions.`);
-        return;
-      }
-
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        const photoAsset = result.assets[0];
-        console.log('📸 Gallery photo asset:', {
-          uri: photoAsset.uri,
-          hasBase64: !!photoAsset.base64,
-          width: photoAsset.width,
-          height: photoAsset.height,
-          type: photoAsset.type,
-          fileName: photoAsset.fileName
-        });
-        
-        const processedPhoto = await processPhotoAsset(photoAsset, 'gallery');
-        setPhoto(processedPhoto);
-        console.log('✅ Gallery photo selected and processed successfully');
-        Alert.alert('Success', 'Photo selected successfully!');
-      } else {
-        console.log('🖼️ Gallery selection cancelled by user');
-      }
+      // Trigger the file input
+      input.click();
+      return;
     } catch (error) {
       console.error('❌ Error selecting photo:', error);
       Alert.alert('Error', 'Failed to select photo: ' + error.message);
