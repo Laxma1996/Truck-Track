@@ -13,6 +13,7 @@ import {
   Image,
   ActivityIndicator,
   Platform,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
@@ -51,7 +52,7 @@ export default function DashboardScreen({ navigation }) {
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [isStatusModalVisible, setIsStatusModalVisible] = useState(false);
+  const [isStatusDropdownVisible, setIsStatusDropdownVisible] = useState(false);
   const [isJobDetailsModalVisible, setIsJobDetailsModalVisible] = useState(false);
   const [isJobEditModalVisible, setIsJobEditModalVisible] = useState(false);
   const [selectedJob, setSelectedJob] = useState(null);
@@ -442,34 +443,68 @@ export default function DashboardScreen({ navigation }) {
       {/* Action Buttons */}
       <View style={styles.jobActions}>
         <TouchableOpacity 
-          style={[styles.actionButton, styles.editButton]}
+          style={[
+            styles.actionButton, 
+            styles.editButton,
+            job.status === 'deleted' && styles.disabledButton
+          ]}
           onPress={(e) => {
             e.stopPropagation();
-            console.log('Edit button pressed for job:', job.id);
-            handleEditJob(job);
+            if (job.status !== 'deleted') {
+              console.log('Edit button pressed for job:', job.id);
+              handleEditJob(job);
+            }
           }}
+          disabled={job.status === 'deleted'}
         >
-          <Text style={[styles.actionButtonText, { fontSize: fontSizes.base, fontWeight: '800' }]}>✏️ EDIT</Text>
+          <Text style={[
+            styles.actionButtonText,
+            job.status === 'deleted' && styles.disabledButtonText
+          ]}>✏️ Edit</Text>
         </TouchableOpacity>
         
         <TouchableOpacity 
-          style={[styles.actionButton, styles.finishButton]}
+          style={[
+            styles.actionButton, 
+            styles.finishButton,
+            (job.status === 'finished' || job.status === 'deleted') && styles.disabledButton
+          ]}
           onPress={(e) => {
             e.stopPropagation();
-            handleFinishJob(job);
+            if (job.status !== 'finished' && job.status !== 'deleted') {
+              handleFinishJob(job);
+            }
           }}
+          disabled={job.status === 'finished' || job.status === 'deleted'}
         >
-          <Text style={styles.actionButtonText}>✅ Finish</Text>
+          <Text style={[
+            styles.actionButtonText,
+            (job.status === 'finished' || job.status === 'deleted') && styles.disabledButtonText
+          ]}>
+            {job.status === 'finished' ? '✓ Finished' : '✓ Finish'}
+          </Text>
         </TouchableOpacity>
         
         <TouchableOpacity 
-          style={[styles.actionButton, styles.deleteButton]}
+          style={[
+            styles.actionButton, 
+            styles.deleteButton,
+            job.status === 'deleted' && styles.disabledButton
+          ]}
           onPress={(e) => {
             e.stopPropagation();
-            handleDeleteJob(job);
+            if (job.status !== 'deleted') {
+              handleDeleteJob(job);
+            }
           }}
+          disabled={job.status === 'deleted'}
         >
-          <Text style={styles.actionButtonText}>🗑️ Delete</Text>
+          <Text style={[
+            styles.actionButtonText,
+            job.status === 'deleted' && styles.disabledButtonText
+          ]}>
+            {job.status === 'deleted' ? '🗑 Deleted' : '🗑 Delete'}
+          </Text>
         </TouchableOpacity>
       </View>
     </TouchableOpacity>
@@ -546,34 +581,66 @@ export default function DashboardScreen({ navigation }) {
       </View>
 
       {/* Filters */}
-      <View style={styles.filtersContainer}>
-        <Text style={styles.filtersTitle}>Filters</Text>
-        
-        {/* Filters Row - Side by Side */}
-        <View style={styles.filtersRow}>
-          {/* Search Input */}
-          <View style={styles.searchContainer}>
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search by Job ID..."
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              placeholderTextColor="#9ca3af"
-            />
-          </View>
+      <TouchableWithoutFeedback onPress={() => setIsStatusDropdownVisible(false)}>
+        <View style={styles.filtersContainer}>
+          <Text style={styles.filtersTitle}>Filters</Text>
+          
+          {/* Filters Row - Side by Side */}
+          <View style={styles.filtersRow}>
+            {/* Search Input */}
+            <View style={styles.searchContainer}>
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search by Job ID..."
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                placeholderTextColor="#9ca3af"
+              />
+            </View>
 
-          {/* Status Filter */}
-          <TouchableOpacity 
-            style={styles.statusFilter}
-            onPress={() => setIsStatusModalVisible(true)}
-          >
-            <Text style={styles.statusFilterText}>
-              {statusOptions.find(opt => opt.value === statusFilter)?.label || 'All Jobs'}
-            </Text>
-            <Text style={styles.dropdownArrow}>▼</Text>
-          </TouchableOpacity>
+            {/* Status Filter */}
+            <View style={styles.statusFilterContainer}>
+              <TouchableOpacity 
+                style={styles.statusFilter}
+                onPress={() => setIsStatusDropdownVisible(!isStatusDropdownVisible)}
+              >
+                <Text style={styles.statusFilterText}>
+                  {statusOptions.find(opt => opt.value === statusFilter)?.label || 'All Jobs'}
+                </Text>
+                <Text style={[styles.dropdownArrow, isStatusDropdownVisible && styles.dropdownArrowUp]}>
+                  ▼
+                </Text>
+              </TouchableOpacity>
+              
+              {/* Inline Dropdown */}
+              {isStatusDropdownVisible && (
+                <View style={styles.statusDropdown}>
+                  {statusOptions.map((option) => (
+                    <TouchableOpacity
+                      key={option.value}
+                      style={[
+                        styles.statusDropdownOption,
+                        statusFilter === option.value && styles.statusDropdownOptionSelected
+                      ]}
+                      onPress={() => {
+                        setStatusFilter(option.value);
+                        setIsStatusDropdownVisible(false);
+                      }}
+                    >
+                      <Text style={[
+                        styles.statusDropdownOptionText,
+                        statusFilter === option.value && styles.statusDropdownOptionTextSelected
+                      ]}>
+                        {option.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            </View>
+          </View>
         </View>
-      </View>
+      </TouchableWithoutFeedback>
 
       {/* Jobs List */}
       <View style={styles.jobsContainer}>
@@ -594,42 +661,6 @@ export default function DashboardScreen({ navigation }) {
         {filteredJobs.length === 0 && renderEmptyState()}
       </View>
 
-      {/* Status Filter Modal */}
-      {isStatusModalVisible && (
-        <View style={styles.modalOverlay}>
-          <View style={styles.statusModal}>
-            <Text style={styles.modalTitle}>Filter by Status</Text>
-            
-            {statusOptions.map((option) => (
-              <TouchableOpacity
-                key={option.value}
-                style={[
-                  styles.statusOption,
-                  statusFilter === option.value && styles.statusOptionSelected
-                ]}
-                onPress={() => {
-                  setStatusFilter(option.value);
-                  setIsStatusModalVisible(false);
-                }}
-              >
-                <Text style={[
-                  styles.statusOptionText,
-                  statusFilter === option.value && styles.statusOptionTextSelected
-                ]}>
-                  {option.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-            
-            <TouchableOpacity
-              style={styles.cancelButton}
-              onPress={() => setIsStatusModalVisible(false)}
-            >
-              <Text style={styles.cancelButtonText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
 
       {/* Job Edit Modal */}
       <Modal
@@ -1034,6 +1065,11 @@ const styles = StyleSheet.create({
     fontSize: getResponsiveValue(14, 16, 18),
     backgroundColor: colors.background.primary,
   },
+  statusFilterContainer: {
+    flex: getResponsiveValue(0, 1, 1),
+    minWidth: getResponsiveValue('100%', 200, 240),
+    position: 'relative',
+  },
   statusFilter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -1044,8 +1080,7 @@ const styles = StyleSheet.create({
     padding: getResponsivePixels(12, 14, 16),
     paddingHorizontal: getResponsivePixels(16, 18, 20),
     backgroundColor: colors.background.primary,
-    flex: getResponsiveValue(0, 1, 1),
-    minWidth: getResponsiveValue('100%', 200, 240),
+    width: '100%',
   },
   statusFilterText: {
     fontSize: getResponsiveValue(14, 16, 18),
@@ -1054,6 +1089,47 @@ const styles = StyleSheet.create({
   dropdownArrow: {
     fontSize: getResponsiveValue(12, 14, 16),
     color: colors.text.muted,
+    transition: 'transform 0.2s ease-in-out',
+  },
+  dropdownArrowUp: {
+    transform: 'rotate(180deg)',
+  },
+  statusDropdown: {
+    position: 'absolute',
+    top: '100%',
+    left: 0,
+    right: 0,
+    backgroundColor: colors.background.primary,
+    borderWidth: 1,
+    borderColor: colors.border.light,
+    borderTopWidth: 0,
+    borderBottomLeftRadius: getResponsivePixels(6, 8, 10),
+    borderBottomRightRadius: getResponsivePixels(6, 8, 10),
+    ...getResponsiveShadows().medium,
+    marginTop: -1,
+    elevation: 3, // For Android shadow
+    shadowColor: '#000', // For iOS shadow
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    zIndex: 10, // Lower z-index to not interfere with other elements
+  },
+  statusDropdownOption: {
+    padding: getResponsivePixels(12, 14, 16),
+    paddingHorizontal: getResponsivePixels(16, 18, 20),
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.light,
+  },
+  statusDropdownOptionSelected: {
+    backgroundColor: colors.primaryLight + '20',
+  },
+  statusDropdownOptionText: {
+    fontSize: getResponsiveValue(14, 16, 18),
+    color: colors.text.primary,
+  },
+  statusDropdownOptionTextSelected: {
+    color: colors.primary,
+    fontWeight: '600',
   },
   jobsContainer: {
     paddingHorizontal: getResponsivePixels(16, 20, 24),
@@ -1171,60 +1247,6 @@ const styles = StyleSheet.create({
     fontSize: getResponsiveValue(12, 14, 16),
     color: colors.primary,
     fontWeight: '500',
-  },
-  modalOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  statusModal: {
-    backgroundColor: colors.background.primary,
-    borderRadius: getResponsivePixels(8, 12, 16),
-    padding: getResponsivePixels(20, 24, 32),
-    width: getResponsiveValue('95%', '85%', '70%'),
-    maxWidth: getResponsiveValue(400, 600, 800),
-    ...getResponsiveShadows().heavy,
-  },
-  modalTitle: {
-    fontSize: getResponsiveValue(18, 20, 22),
-    fontWeight: '600',
-    color: colors.text.primary,
-    marginBottom: getResponsivePixels(12, 16, 20),
-    textAlign: 'center',
-  },
-  statusOption: {
-    padding: getResponsivePixels(12, 16, 20),
-    borderRadius: getResponsivePixels(6, 8, 10),
-    marginBottom: getResponsivePixels(8, 12, 16),
-    backgroundColor: colors.background.secondary,
-  },
-  statusOptionSelected: {
-    backgroundColor: colors.primaryLight + '20',
-  },
-  statusOptionText: {
-    fontSize: getResponsiveValue(16, 18, 20),
-    color: colors.text.primary,
-  },
-  statusOptionTextSelected: {
-    color: colors.primary,
-    fontWeight: '600',
-  },
-  cancelButton: {
-    marginTop: getResponsivePixels(12, 16, 20),
-    padding: getResponsivePixels(12, 16, 20),
-    borderRadius: getResponsivePixels(6, 8, 10),
-    backgroundColor: colors.background.secondary,
-    alignItems: 'center',
-  },
-  cancelButtonText: {
-    fontSize: getResponsiveValue(16, 18, 20),
-    color: colors.danger,
-    fontWeight: '600',
   },
   // Job Details Modal Styles
   jobDetailsModal: {
@@ -1375,48 +1397,92 @@ const styles = StyleSheet.create({
   // Job Action Buttons
   jobActions: {
     flexDirection: getResponsiveValue('column', 'row', 'row'),
-    justifyContent: 'space-evenly',
+    justifyContent: 'space-between',
     marginTop: getResponsivePixels(16, 20, 24),
-    gap: getResponsivePixels(8, 12, 16),
-    paddingTop: getResponsivePixels(12, 16, 20),
-    paddingBottom: getResponsivePixels(12, 16, 20),
+    gap: getResponsivePixels(8, 10, 12),
+    paddingTop: getResponsivePixels(16, 20, 24),
+    paddingBottom: getResponsivePixels(8, 12, 16),
     borderTopWidth: 1,
     borderTopColor: colors.border.light,
+    backgroundColor: colors.background.secondary,
+    marginHorizontal: -getResponsivePixels(16, 20, 24),
+    paddingHorizontal: getResponsivePixels(16, 20, 24),
+    marginBottom: -getResponsivePixels(16, 20, 24),
   },
   actionButton: {
-    flex: getResponsiveValue(0, 1, 1),
-    paddingVertical: getResponsivePixels(12, 16, 20),
-    paddingHorizontal: getResponsivePixels(12, 16, 20),
-    borderRadius: getResponsivePixels(4, 6, 8),
+    flex: 1,
+    paddingVertical: getResponsivePixels(10, 12, 14),
+    paddingHorizontal: getResponsivePixels(8, 10, 12),
+    borderRadius: getResponsivePixels(6, 8, 10),
     alignItems: 'center',
     justifyContent: 'center',
     ...getResponsiveShadows().light,
-    borderWidth: 2,
+    borderWidth: 1,
     borderColor: 'transparent',
-    minWidth: getResponsiveValue(80, 100, 120),
-    marginHorizontal: 2,
+    minHeight: getResponsiveValue(40, 44, 48),
+    // Add hover effects for web
+    ...(Platform.OS === 'web' && {
+      cursor: 'pointer',
+      transition: 'all 0.2s ease-in-out',
+      ':hover': {
+        transform: 'translateY(-1px)',
+        ...getResponsiveShadows().medium,
+      },
+    }),
   },
   actionButtonText: {
-    fontSize: getResponsiveValue(12, 14, 16),
-    fontWeight: '700',
+    fontSize: getResponsiveValue(11, 12, 13),
+    fontWeight: '600',
     color: '#FFFFFF',
     textAlign: 'center',
-    textShadow: '1px 1px 2px rgba(0, 0, 0, 0.3)',
+    textShadow: '0 1px 2px rgba(0, 0, 0, 0.2)',
+    letterSpacing: 0.5,
   },
   editButton: {
-    backgroundColor: '#ff6b35',
-    borderColor: '#e55a2b',
-    borderWidth: 2,
+    backgroundColor: '#f59e0b',
+    borderColor: '#d97706',
+    ...(Platform.OS === 'web' && {
+      ':hover': {
+        backgroundColor: '#d97706',
+        transform: 'translateY(-1px)',
+      },
+    }),
   },
   finishButton: {
-    backgroundColor: '#28a745',
-    borderColor: '#1e7e34',
-    borderWidth: 2,
+    backgroundColor: '#10b981',
+    borderColor: '#059669',
+    ...(Platform.OS === 'web' && {
+      ':hover': {
+        backgroundColor: '#059669',
+        transform: 'translateY(-1px)',
+      },
+    }),
   },
   deleteButton: {
-    backgroundColor: '#dc3545',
-    borderColor: '#c82333',
-    borderWidth: 2,
+    backgroundColor: '#ef4444',
+    borderColor: '#dc2626',
+    ...(Platform.OS === 'web' && {
+      ':hover': {
+        backgroundColor: '#dc2626',
+        transform: 'translateY(-1px)',
+      },
+    }),
+  },
+  disabledButton: {
+    backgroundColor: '#9ca3af',
+    borderColor: '#6b7280',
+    opacity: 0.6,
+    ...(Platform.OS === 'web' && {
+      cursor: 'not-allowed',
+      ':hover': {
+        backgroundColor: '#9ca3af',
+        transform: 'none',
+      },
+    }),
+  },
+  disabledButtonText: {
+    color: '#ffffff',
+    opacity: 0.8,
   },
   // Edit Modal Styles
   editModal: {

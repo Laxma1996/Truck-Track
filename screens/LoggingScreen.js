@@ -141,18 +141,52 @@ export default function LoggingScreen({ navigation }) {
     }
   };
 
+  // Universal photo processing function
+  const processPhotoAsset = async (photoAsset, source) => {
+    try {
+      console.log(`📸 Processing ${source} photo:`, {
+        uri: photoAsset.uri,
+        hasBase64: !!photoAsset.base64,
+        width: photoAsset.width,
+        height: photoAsset.height,
+        type: photoAsset.type,
+        fileName: photoAsset.fileName
+      });
+
+      // Create a standardized photo object
+      const processedPhoto = {
+        uri: photoAsset.uri,
+        base64: photoAsset.base64 || null,
+        width: photoAsset.width,
+        height: photoAsset.height,
+        type: photoAsset.type || 'image/jpeg',
+        fileName: photoAsset.fileName || `photo_${Date.now()}.jpg`,
+        source: source // 'camera' or 'gallery'
+      };
+
+      // If no base64 is provided, we'll use the URI as is
+      // The app will handle both base64 and URI formats
+      if (!processedPhoto.base64) {
+        console.log('⚠️ No base64 data provided, using URI directly');
+        console.log('URI format:', processedPhoto.uri.substring(0, 50) + '...');
+      }
+
+      console.log('✅ Photo processed successfully:', {
+        hasUri: !!processedPhoto.uri,
+        hasBase64: !!processedPhoto.base64,
+        source: processedPhoto.source
+      });
+
+      return processedPhoto;
+    } catch (error) {
+      console.error('❌ Error processing photo:', error);
+      throw error;
+    }
+  };
+
   const takePhoto = async () => {
     try {
-      // Debug ImagePicker properties
-      console.log('🔍 ImagePicker properties:', {
-        MediaType: ImagePicker.MediaType,
-        MediaTypeOptions: ImagePicker.MediaTypeOptions,
-        availableProperties: Object.keys(ImagePicker)
-      });
-      
-      // Check if we're on web and handle accordingly
-      const isWeb = typeof window !== 'undefined';
-      console.log('🌐 Platform check:', { isWeb });
+      console.log('📷 Starting camera capture...');
       
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
       
@@ -161,58 +195,39 @@ export default function LoggingScreen({ navigation }) {
         return;
       }
 
+      // Optimized options for better compatibility
       const pickerOptions = {
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [4, 3],
         quality: 0.8,
-        base64: true, // This is important for web compatibility
+        base64: true, // Request base64 for better compatibility
+        exif: false, // Disable EXIF to avoid issues
       };
       
       console.log('📷 Launching camera with options:', pickerOptions);
       
-      let result;
-      try {
-        result = await ImagePicker.launchCameraAsync(pickerOptions);
-      } catch (pickerError) {
-        console.error('❌ ImagePicker camera error:', pickerError);
-        // Fallback: try without some options
-        const fallbackOptions = {
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
-          quality: 0.8,
-          base64: true,
-        };
-        console.log('🔄 Trying fallback options:', fallbackOptions);
-        result = await ImagePicker.launchCameraAsync(fallbackOptions);
-      }
+      const result = await ImagePicker.launchCameraAsync(pickerOptions);
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const photoAsset = result.assets[0];
-        console.log('Photo captured:', {
-          uri: photoAsset.uri,
-          hasBase64: !!photoAsset.base64,
-          width: photoAsset.width,
-          height: photoAsset.height
-        });
-        
-        console.log('📸 Setting photo state with asset:', {
-          uri: photoAsset.uri,
-          hasBase64: !!photoAsset.base64,
-          width: photoAsset.width,
-          height: photoAsset.height
-        });
-        setPhoto(photoAsset);
-        console.log('✅ Photo state set successfully');
+        const processedPhoto = await processPhotoAsset(photoAsset, 'camera');
+        setPhoto(processedPhoto);
+        console.log('✅ Camera photo captured and processed successfully');
         Alert.alert('Success', 'Photo captured successfully!');
+      } else {
+        console.log('📷 Camera capture cancelled by user');
       }
     } catch (error) {
-      console.error('Error taking photo:', error);
+      console.error('❌ Error taking photo:', error);
       Alert.alert('Error', 'Failed to take photo: ' + error.message);
     }
   };
 
   const selectFromGallery = async () => {
     try {
+      console.log('🖼️ Starting gallery selection...');
+      
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       
       if (status !== 'granted') {
@@ -220,52 +235,31 @@ export default function LoggingScreen({ navigation }) {
         return;
       }
 
+      // Optimized options for better compatibility
       const pickerOptions = {
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [4, 3],
         quality: 0.8,
-        base64: true, // This is important for web compatibility
+        base64: true, // Request base64 for better compatibility
+        exif: false, // Disable EXIF to avoid issues
       };
       
       console.log('🖼️ Launching gallery with options:', pickerOptions);
       
-      let result;
-      try {
-        result = await ImagePicker.launchImageLibraryAsync(pickerOptions);
-      } catch (pickerError) {
-        console.error('❌ ImagePicker gallery error:', pickerError);
-        // Fallback: try without some options
-        const fallbackOptions = {
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
-          quality: 0.8,
-          base64: true,
-        };
-        console.log('🔄 Trying fallback options:', fallbackOptions);
-        result = await ImagePicker.launchImageLibraryAsync(fallbackOptions);
-      }
+      const result = await ImagePicker.launchImageLibraryAsync(pickerOptions);
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const photoAsset = result.assets[0];
-        console.log('Photo selected:', {
-          uri: photoAsset.uri,
-          hasBase64: !!photoAsset.base64,
-          width: photoAsset.width,
-          height: photoAsset.height
-        });
-        
-        console.log('📸 Setting photo state with selected asset:', {
-          uri: photoAsset.uri,
-          hasBase64: !!photoAsset.base64,
-          width: photoAsset.width,
-          height: photoAsset.height
-        });
-        setPhoto(photoAsset);
-        console.log('✅ Photo state set successfully');
+        const processedPhoto = await processPhotoAsset(photoAsset, 'gallery');
+        setPhoto(processedPhoto);
+        console.log('✅ Gallery photo selected and processed successfully');
         Alert.alert('Success', 'Photo selected successfully!');
+      } else {
+        console.log('🖼️ Gallery selection cancelled by user');
       }
     } catch (error) {
-      console.error('Error selecting photo:', error);
+      console.error('❌ Error selecting photo:', error);
       Alert.alert('Error', 'Failed to select photo: ' + error.message);
     }
   };
@@ -314,31 +308,35 @@ export default function LoggingScreen({ navigation }) {
       hasPhoto: !!photo,
       hasUri: !!photo.uri,
       hasBase64: !!photo.base64,
+      source: photo.source || 'unknown',
+      type: photo.type || 'unknown',
       uriType: photo.uri ? typeof photo.uri : 'undefined',
       uriLength: photo.uri ? photo.uri.length : 0,
       uriPreview: photo.uri ? photo.uri.substring(0, 100) + '...' : 'null'
     });
 
-    if (!photo.uri || photo.uri.trim() === '') {
-      console.log('❌ Validation failed: Photo URI is empty');
-      Alert.alert('Validation Error', 'Photo is invalid. Please take a new photo of the truck');
+    if (!photo || !photo.uri || photo.uri.trim() === '') {
+      console.log('❌ Validation failed: Photo or photo URI is missing');
+      Alert.alert('Validation Error', 'Photo is required. Please take a photo or select one from gallery');
       return;
     }
 
-    // More flexible photo URI validation - accept various formats
+    // Enhanced photo validation - accept all common formats
     const isValidPhotoFormat = photo.uri.startsWith('data:image/') || 
                               photo.uri.startsWith('file://') || 
                               photo.uri.startsWith('http') ||
                               photo.uri.startsWith('blob:') ||
+                              photo.uri.startsWith('content://') || // Android content URI
+                              photo.uri.startsWith('ph://') || // iOS photo library
                               photo.base64; // Accept if base64 is available
 
     if (!isValidPhotoFormat) {
       console.log('❌ Validation failed: Invalid photo format:', photo.uri);
-      Alert.alert('Validation Error', 'Photo format is not supported. Please take a new photo');
+      Alert.alert('Validation Error', `Photo format not supported: ${photo.uri.substring(0, 50)}... Please try taking a new photo`);
       return;
     }
     
-    console.log('✅ Photo validation passed');
+    console.log('✅ Photo validation passed - format accepted');
 
     console.log('✅ All validations passed:', {
       activity,
@@ -377,26 +375,33 @@ export default function LoggingScreen({ navigation }) {
       console.log('✅ User authentication verified');
 
       // Final validation before saving
-      if (!photo.uri || photo.uri.trim() === '') {
+      if (!photo || !photo.uri || photo.uri.trim() === '') {
         Alert.alert('Validation Error', 'Cannot save job without a valid photo. Please take a photo first.');
         setIsLoading(false);
         return;
       }
 
-      // Prepare photo data - use base64 if available, otherwise use URI
+      // Enhanced photo data preparation - handle all formats consistently
       let photoData = photo.uri;
+      
       if (photo.base64) {
-        // Create a proper data URL with base64
-        photoData = `data:image/jpeg;base64,${photo.base64}`;
-      } else if (photo.uri && !photo.uri.startsWith('data:image/')) {
-        // If we have a URI but no base64, try to use the URI as is
+        // If base64 is available, create a proper data URL
+        const imageType = photo.type || 'image/jpeg';
+        photoData = `data:${imageType};base64,${photo.base64}`;
+        console.log('📸 Using base64 data for photo');
+      } else {
+        // Use URI directly - it should work for most cases
         photoData = photo.uri;
+        console.log('📸 Using URI directly for photo:', photo.uri.substring(0, 50) + '...');
       }
 
       console.log('Photo data prepared:', {
+        source: photo.source || 'unknown',
         originalUri: photo.uri,
         hasBase64: !!photo.base64,
-        finalPhotoData: photoData ? photoData.substring(0, 50) + '...' : 'null'
+        type: photo.type || 'unknown',
+        finalPhotoData: photoData ? photoData.substring(0, 50) + '...' : 'null',
+        dataLength: photoData ? photoData.length : 0
       });
 
       const jobData = {
@@ -755,7 +760,7 @@ export default function LoggingScreen({ navigation }) {
                 })}
                 <Image 
                   source={{ 
-                    uri: photo.base64 ? `data:image/jpeg;base64,${photo.base64}` : photo.uri 
+                    uri: photo.base64 ? `data:${photo.type || 'image/jpeg'};base64,${photo.base64}` : photo.uri 
                   }} 
                   style={[styles.photo, { 
                     minWidth: 200, 
