@@ -161,25 +161,28 @@ export default function LoggingScreen({ navigation }) {
     }
   };
 
-  // Image compression function using React Native Image.getSize
+  // Image compression function for web platform
   const compressImage = (base64, maxWidth = 1200, quality = 0.7) => {
     return new Promise((resolve, reject) => {
-      const dataUrl = `data:image/jpeg;base64,${base64}`;
-      
-      // Use React Native Image.getSize to get dimensions
-      Image.getSize(
-        dataUrl,
-        (width, height) => {
+      try {
+        const dataUrl = `data:image/jpeg;base64,${base64}`;
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Create image element for drawing
+        const img = document.createElement('img');
+        img.onload = () => {
           try {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
+            // Get original dimensions
+            const originalWidth = img.naturalWidth || img.width;
+            const originalHeight = img.naturalHeight || img.height;
             
             // Calculate new dimensions
-            let newWidth = width;
-            let newHeight = height;
+            let newWidth = originalWidth;
+            let newHeight = originalHeight;
             
-            if (width > maxWidth) {
-              newHeight = (height * maxWidth) / width;
+            if (originalWidth > maxWidth) {
+              newHeight = (originalHeight * maxWidth) / originalWidth;
               newWidth = maxWidth;
             }
             
@@ -187,50 +190,40 @@ export default function LoggingScreen({ navigation }) {
             canvas.width = newWidth;
             canvas.height = newHeight;
             
-            // Create image element for drawing
-            const img = document.createElement('img');
-            img.onload = () => {
-              try {
-                // Draw and compress
-                ctx.drawImage(img, 0, 0, newWidth, newHeight);
-                const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
-                const compressedBase64 = compressedDataUrl.split(',')[1];
-                
-                console.log('📸 Image compressed:', {
-                  originalSize: base64.length,
-                  compressedSize: compressedBase64.length,
-                  compressionRatio: Math.round((1 - compressedBase64.length / base64.length) * 100) + '%',
-                  newDimensions: { width: newWidth, height: newHeight }
-                });
-                
-                resolve({
-                  dataUrl: compressedDataUrl,
-                  base64: compressedBase64,
-                  width: newWidth,
-                  height: newHeight
-                });
-              } catch (drawError) {
-                console.error('❌ Canvas drawing error:', drawError);
-                reject(drawError);
-              }
-            };
+            // Draw and compress
+            ctx.drawImage(img, 0, 0, newWidth, newHeight);
+            const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+            const compressedBase64 = compressedDataUrl.split(',')[1];
             
-            img.onerror = (error) => {
-              console.error('❌ Image load error:', error);
-              reject(error);
-            };
+            console.log('📸 Image compressed:', {
+              originalSize: base64.length,
+              compressedSize: compressedBase64.length,
+              compressionRatio: Math.round((1 - compressedBase64.length / base64.length) * 100) + '%',
+              newDimensions: { width: newWidth, height: newHeight }
+            });
             
-            img.src = dataUrl;
-          } catch (error) {
-            console.error('❌ Canvas creation error:', error);
-            reject(error);
+            resolve({
+              dataUrl: compressedDataUrl,
+              base64: compressedBase64,
+              width: newWidth,
+              height: newHeight
+            });
+          } catch (drawError) {
+            console.error('❌ Canvas drawing error:', drawError);
+            reject(drawError);
           }
-        },
-        (error) => {
-          console.error('❌ Image.getSize error:', error);
+        };
+        
+        img.onerror = (error) => {
+          console.error('❌ Image load error:', error);
           reject(error);
-        }
-      );
+        };
+        
+        img.src = dataUrl;
+      } catch (error) {
+        console.error('❌ Compression setup error:', error);
+        reject(error);
+      }
     });
   };
 
@@ -381,32 +374,31 @@ export default function LoggingScreen({ navigation }) {
               fileName: file.name
             };
             
-            // Get image dimensions using React Native Image.getSize
-            Image.getSize(
-              e.target.result,
-              (width, height) => {
-                photoAsset.width = width;
-                photoAsset.height = height;
-                console.log('📸 Image dimensions:', { width, height });
-                
-                processPhotoAsset(photoAsset, 'camera').then(processedPhoto => {
-                  setPhoto(processedPhoto);
-                  console.log('✅ Camera photo captured and processed successfully');
-                  Alert.alert('Success', 'Photo captured successfully!');
-                });
-              },
-              (error) => {
-                console.log('⚠️ Could not get image dimensions, using default values');
-                photoAsset.width = 800; // Default width
-                photoAsset.height = 600; // Default height
-                
-                processPhotoAsset(photoAsset, 'camera').then(processedPhoto => {
-                  setPhoto(processedPhoto);
-                  console.log('✅ Camera photo captured and processed successfully');
-                  Alert.alert('Success', 'Photo captured successfully!');
-                });
-              }
-            );
+            // Get image dimensions using HTML Image element
+            const img = document.createElement('img');
+            img.onload = () => {
+              photoAsset.width = img.naturalWidth || img.width;
+              photoAsset.height = img.naturalHeight || img.height;
+              console.log('📸 Image dimensions:', { width: photoAsset.width, height: photoAsset.height });
+              
+              processPhotoAsset(photoAsset, 'camera').then(processedPhoto => {
+                setPhoto(processedPhoto);
+                console.log('✅ Camera photo captured and processed successfully');
+                Alert.alert('Success', 'Photo captured successfully!');
+              });
+            };
+            img.onerror = () => {
+              console.log('⚠️ Could not get image dimensions, using default values');
+              photoAsset.width = 800; // Default width
+              photoAsset.height = 600; // Default height
+              
+              processPhotoAsset(photoAsset, 'camera').then(processedPhoto => {
+                setPhoto(processedPhoto);
+                console.log('✅ Camera photo captured and processed successfully');
+                Alert.alert('Success', 'Photo captured successfully!');
+              });
+            };
+            img.src = e.target.result;
           };
           reader.readAsDataURL(file);
         }
@@ -539,32 +531,31 @@ export default function LoggingScreen({ navigation }) {
                 fileName: file.name
               };
               
-              // Get image dimensions using React Native Image.getSize
-              Image.getSize(
-                e.target.result,
-                (width, height) => {
-                  photoAsset.width = width;
-                  photoAsset.height = height;
-                  console.log('📸 Image dimensions:', { width, height });
-                  
-                  processPhotoAsset(photoAsset, 'gallery').then(processedPhoto => {
-                    setPhoto(processedPhoto);
-                    console.log('✅ Gallery photo selected and processed successfully');
-                    Alert.alert('Success', 'Photo selected successfully!');
-                  });
-                },
-                (error) => {
-                  console.log('⚠️ Could not get image dimensions, using default values');
-                  photoAsset.width = 800; // Default width
-                  photoAsset.height = 600; // Default height
-                  
-                  processPhotoAsset(photoAsset, 'gallery').then(processedPhoto => {
-                    setPhoto(processedPhoto);
-                    console.log('✅ Gallery photo selected and processed successfully');
-                    Alert.alert('Success', 'Photo selected successfully!');
-                  });
-                }
-              );
+              // Get image dimensions using HTML Image element
+              const img = document.createElement('img');
+              img.onload = () => {
+                photoAsset.width = img.naturalWidth || img.width;
+                photoAsset.height = img.naturalHeight || img.height;
+                console.log('📸 Image dimensions:', { width: photoAsset.width, height: photoAsset.height });
+                
+                processPhotoAsset(photoAsset, 'gallery').then(processedPhoto => {
+                  setPhoto(processedPhoto);
+                  console.log('✅ Gallery photo selected and processed successfully');
+                  Alert.alert('Success', 'Photo selected successfully!');
+                });
+              };
+              img.onerror = () => {
+                console.log('⚠️ Could not get image dimensions, using default values');
+                photoAsset.width = 800; // Default width
+                photoAsset.height = 600; // Default height
+                
+                processPhotoAsset(photoAsset, 'gallery').then(processedPhoto => {
+                  setPhoto(processedPhoto);
+                  console.log('✅ Gallery photo selected and processed successfully');
+                  Alert.alert('Success', 'Photo selected successfully!');
+                });
+              };
+              img.src = e.target.result;
             };
             reader.readAsDataURL(file);
           }
@@ -606,32 +597,31 @@ export default function LoggingScreen({ navigation }) {
               fileName: file.name
             };
             
-            // Get image dimensions using React Native Image.getSize
-            Image.getSize(
-              e.target.result,
-              (width, height) => {
-                photoAsset.width = width;
-                photoAsset.height = height;
-                console.log('📸 Image dimensions:', { width, height });
-                
-                processPhotoAsset(photoAsset, 'gallery').then(processedPhoto => {
-                  setPhoto(processedPhoto);
-                  console.log('✅ Gallery photo selected and processed successfully');
-                  Alert.alert('Success', 'Photo selected successfully!');
-                });
-              },
-              (error) => {
-                console.log('⚠️ Could not get image dimensions, using default values');
-                photoAsset.width = 800; // Default width
-                photoAsset.height = 600; // Default height
-                
-                processPhotoAsset(photoAsset, 'gallery').then(processedPhoto => {
-                  setPhoto(processedPhoto);
-                  console.log('✅ Gallery photo selected and processed successfully');
-                  Alert.alert('Success', 'Photo selected successfully!');
-                });
-              }
-            );
+            // Get image dimensions using HTML Image element
+            const img = document.createElement('img');
+            img.onload = () => {
+              photoAsset.width = img.naturalWidth || img.width;
+              photoAsset.height = img.naturalHeight || img.height;
+              console.log('📸 Image dimensions:', { width: photoAsset.width, height: photoAsset.height });
+              
+              processPhotoAsset(photoAsset, 'gallery').then(processedPhoto => {
+                setPhoto(processedPhoto);
+                console.log('✅ Gallery photo selected and processed successfully');
+                Alert.alert('Success', 'Photo selected successfully!');
+              });
+            };
+            img.onerror = () => {
+              console.log('⚠️ Could not get image dimensions, using default values');
+              photoAsset.width = 800; // Default width
+              photoAsset.height = 600; // Default height
+              
+              processPhotoAsset(photoAsset, 'gallery').then(processedPhoto => {
+                setPhoto(processedPhoto);
+                console.log('✅ Gallery photo selected and processed successfully');
+                Alert.alert('Success', 'Photo selected successfully!');
+              });
+            };
+            img.src = e.target.result;
           };
           reader.readAsDataURL(file);
         }
