@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create App Assets</title>
+</head>
+<body>
+    <canvas id="iconCanvas" width="1024" height="1024" style="border: 1px solid #ccc;"></canvas>
+    <canvas id="splashCanvas" width="1242" height="2436" style="border: 1px solid #ccc;"></canvas>
+    <br>
+    <button onclick="downloadAssets()">Download Assets</button>
+
+    <script>
+        function createIcon() {
+            const canvas = document.getElementById('iconCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Background
+            ctx.fillStyle = '#4a90e2';
+            ctx.fillRect(0, 0, 1024, 1024);
+            
+            // Truck icon
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 400px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('🚛', 512, 512);
+            
+            return canvas.toDataURL('image/png');
+        }
+        
+        function createSplash() {
+            const canvas = document.getElementById('splashCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Background
+            ctx.fillStyle = '#f8f9fa';
+            ctx.fillRect(0, 0, 1242, 2436);
+            
+            // App name
+            ctx.fillStyle = '#4a90e2';
+            ctx.font = 'bold 80px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('Truck Tracker', 621, 1000);
+            
+            // Truck icon
+            ctx.font = 'bold 200px Arial';
+            ctx.fillText('🚛', 621, 1200);
+            
+            return canvas.toDataURL('image/png');
+        }
+        
+        function downloadAssets() {
+            // Create icon
+            const iconDataUrl = createIcon();
+            const iconLink = document.createElement('a');
+            iconLink.download = 'icon.png';
+            iconLink.href = iconDataUrl;
+            iconLink.click();
+            
+            // Create splash
+            const splashDataUrl = createSplash();
+            const splashLink = document.createElement('a');
+            splashLink.download = 'splash.png';
+            splashLink.href = splashDataUrl;
+            splashLink.click();
+        }
+        
+        // Auto-create on load
+        window.onload = function() {
+            createIcon();
+            createSplash();
+        };
+    </script>
+</body>
+</html>

@@ -1171,21 +1171,43 @@ export default function LoggingScreen({ navigation }) {
                   hasBase64: !!photo.base64,
                   uriPreview: photo.uri ? photo.uri.substring(0, 50) + '...' : 'null'
                 })}
-                <Image 
-                  source={{ 
-                    uri: photo.base64 ? `data:${photo.type || 'image/jpeg'};base64,${photo.base64}` : photo.uri 
-                  }} 
-                  style={[styles.photo, { 
-                    minWidth: 200, 
-                    minHeight: 150,
-                    maxWidth: 300,
-                    maxHeight: 200
-                  }]}
-                  onError={(error) => console.error('❌ Image load error:', error)}
-                  onLoad={() => console.log('✅ Image loaded successfully')}
-                  onLoadStart={() => console.log('🔄 Image loading started')}
-                  onLoadEnd={() => console.log('🏁 Image loading ended')}
-                />
+                {Platform.OS === 'web' ? (
+                  <img 
+                    src={photo.base64 ? `data:${photo.type || 'image/jpeg'};base64,${photo.base64}` : photo.uri}
+                    style={{
+                      minWidth: 200,
+                      minHeight: 150,
+                      maxWidth: 300,
+                      maxHeight: 200,
+                      borderRadius: 8,
+                      objectFit: 'contain',
+                      backgroundColor: '#f0f0f0',
+                      border: '1px solid #ddd'
+                    }}
+                    onError={(error) => {
+                      console.error('❌ Image load error:', error);
+                      console.error('❌ Image source:', photo.base64 ? `data:${photo.type || 'image/jpeg'};base64,${photo.base64.substring(0, 50)}...` : photo.uri);
+                    }}
+                    onLoad={() => console.log('✅ Image loaded successfully')}
+                    alt="Truck Photo"
+                  />
+                ) : (
+                  <Image 
+                    source={{ 
+                      uri: photo.base64 ? `data:${photo.type || 'image/jpeg'};base64,${photo.base64}` : photo.uri 
+                    }} 
+                    style={[styles.photo, { 
+                      minWidth: 200, 
+                      minHeight: 150,
+                      maxWidth: 300,
+                      maxHeight: 200
+                    }]}
+                    onError={(error) => console.error('❌ Image load error:', error)}
+                    onLoad={() => console.log('✅ Image loaded successfully')}
+                    onLoadStart={() => console.log('🔄 Image loading started')}
+                    onLoadEnd={() => console.log('🏁 Image loading ended')}
+                  />
+                )}
                 <Text style={{ fontSize: 12, color: '#666', marginTop: 5 }}>
                   Photo loaded: {photo.width}x{photo.height}
                 </Text>

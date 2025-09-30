@@ -15,12 +15,23 @@
     },
     "production": {
       "android": {
-        "buildType": "aab"
+        "buildType": "app-bundle"
       }
     },
     "apk": {
       "android": {
         "buildType": "apk"
+      }
+    },
+    "android-apk": {
+      "android": {
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleRelease"
+      }
+    },
+    "ios-app": {
+      "ios": {
+        "buildConfiguration": "Release"
       }
     }
   },

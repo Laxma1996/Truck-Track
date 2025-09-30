@@ -4,30 +4,25 @@
     "slug": "truck-tracker",
     "version": "1.0.1",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#f8f9fa"
-    },
     "assetBundlePatterns": [
       "**/*"
     ],
-    "platforms": ["ios", "android", "web"],
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.trucktracker.app",
       "infoPlist": {
         "NSCameraUsageDescription": "This app needs access to camera to take photos of trucks.",
-        "NSPhotoLibraryUsageDescription": "This app needs access to photo library to select truck images."
+        "NSPhotoLibraryUsageDescription": "This app needs access to photo library to select truck images.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/icon.png",
-        "backgroundColor": "#f8f9fa"
-      },
       "package": "com.trucktracker.app",
       "permissions": [
         "android.permission.CAMERA",
@@ -37,6 +32,12 @@
     },
     "web": {
       "bundler": "metro"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "66e1c984-c6df-4d85-a032-feab6fca63d0"
+      }
+    },
+    "owner": "lakshmakandula"
   }
 }
