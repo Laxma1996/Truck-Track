@@ -9,12 +9,53 @@ import {
   query, 
   where 
 } from 'firebase/firestore';
+import { 
+  getStorage, 
+  ref, 
+  uploadBytes, 
+  getDownloadURL 
+} from 'firebase/storage';
 import { db } from '../config/firebase';
 
 // Collection names
 const COLLECTIONS = {
   USERS: 'users',
   JOBS: 'jobs'
+};
+
+// Initialize Firebase Storage
+const storage = getStorage();
+
+// Helper function to upload image to Firebase Storage
+const uploadImageToStorage = async (base64Data, fileName) => {
+  try {
+    console.log('📤 Uploading image to Firebase Storage...');
+    
+    // Convert base64 to blob
+    const byteCharacters = atob(base64Data);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: 'image/jpeg' });
+    
+    // Create storage reference
+    const storageRef = ref(storage, `job-photos/${fileName}`);
+    
+    // Upload the blob
+    const snapshot = await uploadBytes(storageRef, blob);
+    console.log('✅ Image uploaded to Storage:', snapshot.metadata.fullPath);
+    
+    // Get download URL
+    const downloadURL = await getDownloadURL(snapshot.ref);
+    console.log('🔗 Download URL generated:', downloadURL);
+    
+    return { success: true, url: downloadURL };
+  } catch (error) {
+    console.error('❌ Error uploading image to Storage:', error);
+    return { success: false, error: error.message };
+  }
 };
 
 // User authentication service
@@ -148,18 +189,44 @@ export const jobService = {
         status: 'active'
       };
       
+      // Check if photo is too large for Firestore (1MB limit)
+      const photoSizeBytes = jobDocument.photo ? jobDocument.photo.length : 0;
+      const maxFirestoreSize = 1048487; // ~1MB in bytes
+      
+      let finalPhotoData = jobDocument.photo;
+      
+      if (photoSizeBytes > maxFirestoreSize) {
+        console.log('❌ Photo still too large for Firestore after compression');
+        console.log('Photo size:', Math.round(photoSizeBytes / 1024) + 'KB');
+        console.log('⚠️ Firebase Storage upload disabled due to CORS issues');
+        
+        return { 
+          success: false, 
+          message: `Photo is too large (${Math.round(photoSizeBytes / 1024)}KB). Please try with a smaller image or take a new photo.` 
+        };
+      } else {
+        console.log('📄 Photo size OK for Firestore:', Math.round(photoSizeBytes / 1024) + 'KB');
+      }
+      
+      // Update job document with final photo data
+      const finalJobDocument = {
+        ...jobDocument,
+        photo: finalPhotoData
+      };
+      
       console.log('📄 Document to save:', {
-        userId: jobDocument.userId,
-        username: jobDocument.username,
-        activity: jobDocument.activity,
-        truckType: jobDocument.truckType,
-        weight: jobDocument.weight,
-        photoLength: jobDocument.photo ? jobDocument.photo.length : 0,
-        status: jobDocument.status,
-        createdAt: jobDocument.createdAt
+        userId: finalJobDocument.userId,
+        username: finalJobDocument.username,
+        activity: finalJobDocument.activity,
+        truckType: finalJobDocument.truckType,
+        weight: finalJobDocument.weight,
+        photoLength: finalJobDocument.photo ? finalJobDocument.photo.length : 0,
+        photoType: finalJobDocument.photo ? (finalJobDocument.photo.startsWith('http') ? 'Storage URL' : 'Base64') : 'None',
+        status: finalJobDocument.status,
+        createdAt: finalJobDocument.createdAt
       });
       
-      const docRef = await addDoc(jobsRef, jobDocument);
+      const docRef = await addDoc(jobsRef, finalJobDocument);
       
       console.log('✅ Job saved with ID:', docRef.id);
       return { success: true, jobId: docRef.id };

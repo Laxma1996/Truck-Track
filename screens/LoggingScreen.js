@@ -161,6 +161,79 @@ export default function LoggingScreen({ navigation }) {
     }
   };
 
+  // Image compression function using React Native Image.getSize
+  const compressImage = (base64, maxWidth = 1200, quality = 0.7) => {
+    return new Promise((resolve, reject) => {
+      const dataUrl = `data:image/jpeg;base64,${base64}`;
+      
+      // Use React Native Image.getSize to get dimensions
+      Image.getSize(
+        dataUrl,
+        (width, height) => {
+          try {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Calculate new dimensions
+            let newWidth = width;
+            let newHeight = height;
+            
+            if (width > maxWidth) {
+              newHeight = (height * maxWidth) / width;
+              newWidth = maxWidth;
+            }
+            
+            // Set canvas dimensions
+            canvas.width = newWidth;
+            canvas.height = newHeight;
+            
+            // Create image element for drawing
+            const img = document.createElement('img');
+            img.onload = () => {
+              try {
+                // Draw and compress
+                ctx.drawImage(img, 0, 0, newWidth, newHeight);
+                const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+                const compressedBase64 = compressedDataUrl.split(',')[1];
+                
+                console.log('📸 Image compressed:', {
+                  originalSize: base64.length,
+                  compressedSize: compressedBase64.length,
+                  compressionRatio: Math.round((1 - compressedBase64.length / base64.length) * 100) + '%',
+                  newDimensions: { width: newWidth, height: newHeight }
+                });
+                
+                resolve({
+                  dataUrl: compressedDataUrl,
+                  base64: compressedBase64,
+                  width: newWidth,
+                  height: newHeight
+                });
+              } catch (drawError) {
+                console.error('❌ Canvas drawing error:', drawError);
+                reject(drawError);
+              }
+            };
+            
+            img.onerror = (error) => {
+              console.error('❌ Image load error:', error);
+              reject(error);
+            };
+            
+            img.src = dataUrl;
+          } catch (error) {
+            console.error('❌ Canvas creation error:', error);
+            reject(error);
+          }
+        },
+        (error) => {
+          console.error('❌ Image.getSize error:', error);
+          reject(error);
+        }
+      );
+    });
+  };
+
   // Universal photo processing function with compression
   const processPhotoAsset = async (photoAsset, source) => {
     try {
@@ -175,23 +248,61 @@ export default function LoggingScreen({ navigation }) {
 
       // Check if photo is too large and needs compression
       const isLargePhoto = photoAsset.width > 2000 || photoAsset.height > 2000;
+      const base64SizeKB = photoAsset.base64 ? Math.round(photoAsset.base64.length / 1024) : 0;
+      const needsCompression = base64SizeKB > 200; // Compress if larger than 200KB (more aggressive)
+      
       console.log('📏 Photo size check:', {
         width: photoAsset.width,
         height: photoAsset.height,
         isLargePhoto,
-        estimatedSize: photoAsset.base64 ? Math.round(photoAsset.base64.length / 1024) + 'KB' : 'Unknown'
+        base64SizeKB,
+        needsCompression
       });
+
+      let processedBase64 = photoAsset.base64;
+      let processedUri = photoAsset.uri;
+      let processedWidth = photoAsset.width;
+      let processedHeight = photoAsset.height;
+
+      // Compress image if needed
+      if (needsCompression && photoAsset.base64) {
+        console.log('🗜️ Compressing large image...');
+        try {
+          // Use more aggressive compression for large images
+          const compressed = await compressImage(photoAsset.base64, 800, 0.5);
+          processedBase64 = compressed.base64;
+          processedUri = compressed.dataUrl;
+          processedWidth = compressed.width;
+          processedHeight = compressed.height;
+          console.log('✅ Image compressed successfully');
+          
+          // If still too large, try even more aggressive compression
+          const compressedSizeKB = Math.round(processedBase64.length / 1024);
+          if (compressedSizeKB > 800) {
+            console.log('🗜️ Still too large, applying additional compression...');
+            const superCompressed = await compressImage(processedBase64, 600, 0.3);
+            processedBase64 = superCompressed.base64;
+            processedUri = superCompressed.dataUrl;
+            processedWidth = superCompressed.width;
+            processedHeight = superCompressed.height;
+            console.log('✅ Additional compression applied');
+          }
+        } catch (compressionError) {
+          console.error('❌ Compression failed, using original:', compressionError);
+        }
+      }
 
       // Create a standardized photo object
       const processedPhoto = {
-        uri: photoAsset.uri,
-        base64: photoAsset.base64 || null,
-        width: photoAsset.width,
-        height: photoAsset.height,
+        uri: processedUri,
+        base64: processedBase64 || null,
+        width: processedWidth,
+        height: processedHeight,
         type: photoAsset.type || 'image/jpeg',
         fileName: photoAsset.fileName || `photo_${Date.now()}.jpg`,
         source: source, // 'camera' or 'gallery'
-        isLargePhoto: isLargePhoto
+        isLargePhoto: isLargePhoto,
+        wasCompressed: needsCompression
       };
 
       // If no base64 is provided, we'll use the URI as is
@@ -199,16 +310,21 @@ export default function LoggingScreen({ navigation }) {
       if (!processedPhoto.base64) {
         console.log('⚠️ No base64 data provided, using URI directly');
         console.log('URI format:', processedPhoto.uri.substring(0, 50) + '...');
-      } else if (isLargePhoto) {
-        console.log('⚠️ Large photo detected - may cause issues with Firebase storage');
-        console.log('Base64 size:', Math.round(photoAsset.base64.length / 1024) + 'KB');
+      } else {
+        const finalSizeKB = Math.round(processedPhoto.base64.length / 1024);
+        console.log('📊 Final photo size:', finalSizeKB + 'KB');
+        
+        if (finalSizeKB > 1000) {
+          console.log('⚠️ Photo still large after compression - may need Firebase Storage');
+        }
       }
 
       console.log('✅ Photo processed successfully:', {
         hasUri: !!processedPhoto.uri,
         hasBase64: !!processedPhoto.base64,
         source: processedPhoto.source,
-        isLargePhoto: processedPhoto.isLargePhoto
+        isLargePhoto: processedPhoto.isLargePhoto,
+        wasCompressed: processedPhoto.wasCompressed
       });
 
       return processedPhoto;
@@ -265,20 +381,32 @@ export default function LoggingScreen({ navigation }) {
               fileName: file.name
             };
             
-            // Get image dimensions
-            const img = new Image();
-            img.onload = () => {
-              photoAsset.width = img.width;
-              photoAsset.height = img.height;
-              console.log('📸 Image dimensions:', { width: img.width, height: img.height });
-              
-              processPhotoAsset(photoAsset, 'camera').then(processedPhoto => {
-                setPhoto(processedPhoto);
-                console.log('✅ Camera photo captured and processed successfully');
-                Alert.alert('Success', 'Photo captured successfully!');
-              });
-            };
-            img.src = e.target.result;
+            // Get image dimensions using React Native Image.getSize
+            Image.getSize(
+              e.target.result,
+              (width, height) => {
+                photoAsset.width = width;
+                photoAsset.height = height;
+                console.log('📸 Image dimensions:', { width, height });
+                
+                processPhotoAsset(photoAsset, 'camera').then(processedPhoto => {
+                  setPhoto(processedPhoto);
+                  console.log('✅ Camera photo captured and processed successfully');
+                  Alert.alert('Success', 'Photo captured successfully!');
+                });
+              },
+              (error) => {
+                console.log('⚠️ Could not get image dimensions, using default values');
+                photoAsset.width = 800; // Default width
+                photoAsset.height = 600; // Default height
+                
+                processPhotoAsset(photoAsset, 'camera').then(processedPhoto => {
+                  setPhoto(processedPhoto);
+                  console.log('✅ Camera photo captured and processed successfully');
+                  Alert.alert('Success', 'Photo captured successfully!');
+                });
+              }
+            );
           };
           reader.readAsDataURL(file);
         }
@@ -411,20 +539,32 @@ export default function LoggingScreen({ navigation }) {
                 fileName: file.name
               };
               
-              // Get image dimensions
-              const img = new Image();
-              img.onload = () => {
-                photoAsset.width = img.width;
-                photoAsset.height = img.height;
-                console.log('📸 Image dimensions:', { width: img.width, height: img.height });
-                
-                processPhotoAsset(photoAsset, 'gallery').then(processedPhoto => {
-                  setPhoto(processedPhoto);
-                  console.log('✅ Gallery photo selected and processed successfully');
-                  Alert.alert('Success', 'Photo selected successfully!');
-                });
-              };
-              img.src = e.target.result;
+              // Get image dimensions using React Native Image.getSize
+              Image.getSize(
+                e.target.result,
+                (width, height) => {
+                  photoAsset.width = width;
+                  photoAsset.height = height;
+                  console.log('📸 Image dimensions:', { width, height });
+                  
+                  processPhotoAsset(photoAsset, 'gallery').then(processedPhoto => {
+                    setPhoto(processedPhoto);
+                    console.log('✅ Gallery photo selected and processed successfully');
+                    Alert.alert('Success', 'Photo selected successfully!');
+                  });
+                },
+                (error) => {
+                  console.log('⚠️ Could not get image dimensions, using default values');
+                  photoAsset.width = 800; // Default width
+                  photoAsset.height = 600; // Default height
+                  
+                  processPhotoAsset(photoAsset, 'gallery').then(processedPhoto => {
+                    setPhoto(processedPhoto);
+                    console.log('✅ Gallery photo selected and processed successfully');
+                    Alert.alert('Success', 'Photo selected successfully!');
+                  });
+                }
+              );
             };
             reader.readAsDataURL(file);
           }
@@ -466,20 +606,32 @@ export default function LoggingScreen({ navigation }) {
               fileName: file.name
             };
             
-            // Get image dimensions
-            const img = new Image();
-            img.onload = () => {
-              photoAsset.width = img.width;
-              photoAsset.height = img.height;
-              console.log('📸 Image dimensions:', { width: img.width, height: img.height });
-              
-              processPhotoAsset(photoAsset, 'gallery').then(processedPhoto => {
-                setPhoto(processedPhoto);
-                console.log('✅ Gallery photo selected and processed successfully');
-                Alert.alert('Success', 'Photo selected successfully!');
-              });
-            };
-            img.src = e.target.result;
+            // Get image dimensions using React Native Image.getSize
+            Image.getSize(
+              e.target.result,
+              (width, height) => {
+                photoAsset.width = width;
+                photoAsset.height = height;
+                console.log('📸 Image dimensions:', { width, height });
+                
+                processPhotoAsset(photoAsset, 'gallery').then(processedPhoto => {
+                  setPhoto(processedPhoto);
+                  console.log('✅ Gallery photo selected and processed successfully');
+                  Alert.alert('Success', 'Photo selected successfully!');
+                });
+              },
+              (error) => {
+                console.log('⚠️ Could not get image dimensions, using default values');
+                photoAsset.width = 800; // Default width
+                photoAsset.height = 600; // Default height
+                
+                processPhotoAsset(photoAsset, 'gallery').then(processedPhoto => {
+                  setPhoto(processedPhoto);
+                  console.log('✅ Gallery photo selected and processed successfully');
+                  Alert.alert('Success', 'Photo selected successfully!');
+                });
+              }
+            );
           };
           reader.readAsDataURL(file);
         }
