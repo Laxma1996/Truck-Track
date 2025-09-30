@@ -40,6 +40,7 @@ export default function LoginScreen({ navigation }) {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSessionActive, setIsSessionActive] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     checkSessionStatus();
@@ -88,6 +89,12 @@ export default function LoginScreen({ navigation }) {
       console.error('Error checking session status:', error);
       setIsSessionActive(false);
     }
+  };
+
+  const togglePasswordVisibility = () => {
+    console.log('🔐 Password toggle clicked! Current state:', showPassword);
+    setShowPassword(!showPassword);
+    console.log('🔐 New state:', !showPassword);
   };
 
   const handleLogin = async () => {
@@ -162,10 +169,18 @@ export default function LoginScreen({ navigation }) {
                 placeholder="Enter your password"
                 value={password}
                 onChangeText={setPassword}
-                secureTextEntry
+                secureTextEntry={!showPassword}
                 autoCapitalize="none"
                 autoCorrect={false}
               />
+              <TouchableOpacity
+                style={styles.simpleToggleButton}
+                onPress={togglePasswordVisibility}
+              >
+                <Text style={styles.simpleToggleText}>
+                  {showPassword ? 'Hide Password' : 'Show Password'}
+                </Text>
+              </TouchableOpacity>
 
               <TouchableOpacity
                 style={[styles.loginButton, isLoading && styles.loginButtonDisabled]}
@@ -283,6 +298,39 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background.primary,
     marginBottom: getResponsivePixels(8, 12, 16),
   },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.border.medium,
+    borderRadius: getResponsivePixels(4, 6, 8),
+    backgroundColor: colors.background.primary,
+    marginBottom: getResponsivePixels(8, 12, 16),
+  },
+  passwordInput: {
+    flex: 1,
+    padding: getResponsivePixels(8, 12, 16),
+    paddingHorizontal: getResponsivePixels(12, 16, 20),
+    fontSize: getResponsiveValue(14, 16, 18),
+    borderWidth: 0,
+  },
+  eyeButton: {
+    padding: getResponsivePixels(8, 12, 16),
+    paddingHorizontal: getResponsivePixels(12, 16, 20),
+    justifyContent: 'center',
+    alignItems: 'center',
+    minWidth: getResponsivePixels(40, 44, 48),
+    minHeight: getResponsivePixels(40, 44, 48),
+    backgroundColor: colors.background.secondary,
+    borderRadius: getResponsivePixels(4, 6, 8),
+    marginRight: getResponsivePixels(4, 6, 8),
+  },
+  eyeIcon: {
+    fontSize: getResponsiveValue(10, 11, 12),
+    color: colors.primary,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
   loginButton: {
     backgroundColor: colors.primary,
     padding: getResponsivePixels(12, 16, 20),
@@ -358,5 +406,18 @@ const styles = StyleSheet.create({
   },
   directAccessTextDisabled: {
     color: colors.text.secondary,
+  },
+  simpleToggleButton: {
+    backgroundColor: colors.primary,
+    padding: getResponsivePixels(8, 12, 16),
+    borderRadius: getResponsivePixels(4, 6, 8),
+    alignItems: 'center',
+    marginTop: getResponsivePixels(4, 6, 8),
+    marginBottom: getResponsivePixels(8, 12, 16),
+  },
+  simpleToggleText: {
+    color: colors.text.inverse,
+    fontSize: getResponsiveValue(12, 14, 16),
+    fontWeight: '600',
   },
 });

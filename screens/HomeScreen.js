@@ -39,6 +39,7 @@ export default function HomeScreen({ navigation }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     checkAuthStatus();
@@ -96,6 +97,7 @@ export default function HomeScreen({ navigation }) {
         setIsLoginModalVisible(false);
         setUsername('');
         setPassword('');
+        setShowPassword(false);
         
         // Navigate to Dashboard
         navigation.navigate('Dashboard');
@@ -108,6 +110,12 @@ export default function HomeScreen({ navigation }) {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const togglePasswordVisibility = () => {
+    console.log('🔐 Password toggle clicked! Current state:', showPassword);
+    setShowPassword(!showPassword);
+    console.log('🔐 New state:', !showPassword);
   };
 
   const handleLogout = async () => {
@@ -284,15 +292,27 @@ export default function HomeScreen({ navigation }) {
 
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>Password</Text>
-              <TextInput
-                style={styles.input}
-                value={password}
-                onChangeText={setPassword}
-                placeholder="Enter password"
-                placeholderTextColor="#9ca3af"
-                secureTextEntry
-              />
-                </View>
+              <View style={styles.passwordInputContainer}>
+                <TextInput
+                  style={styles.passwordInput}
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholder="Enter password"
+                  placeholderTextColor="#9ca3af"
+                  secureTextEntry={!showPassword}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+                <TouchableOpacity
+                  style={styles.eyeButton}
+                  onPress={togglePasswordVisibility}
+                >
+                  <Text style={styles.eyeIcon}>
+                    {showPassword ? '○' : '◉'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
 
             <View style={styles.demoCredentials}>
               <Text style={styles.demoTitle}>Demo Credentials</Text>
@@ -307,6 +327,7 @@ export default function HomeScreen({ navigation }) {
                   setIsLoginModalVisible(false);
                   setUsername('');
                   setPassword('');
+                  setShowPassword(false);
                 }}
               >
                 <Text style={styles.cancelModalButtonText}>Cancel</Text>
@@ -506,6 +527,32 @@ const styles = StyleSheet.create({
     paddingHorizontal: inputDimensions.paddingHorizontal,
     fontSize: inputDimensions.fontSize,
     backgroundColor: colors.background.primary,
+  },
+  passwordInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.border.light,
+    borderRadius: borderRadius.base,
+    backgroundColor: colors.background.primary,
+  },
+  passwordInput: {
+    flex: 1,
+    padding: inputDimensions.paddingVertical,
+    paddingHorizontal: inputDimensions.paddingHorizontal,
+    fontSize: inputDimensions.fontSize,
+    borderWidth: 0,
+  },
+  eyeButton: {
+    padding: getResponsivePixels(8, 12, 16),
+    paddingHorizontal: getResponsivePixels(12, 16, 20),
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  eyeIcon: {
+    fontSize: getResponsiveValue(18, 20, 22),
+    color: colors.primary,
+    fontWeight: 'bold',
   },
   demoCredentials: {
     backgroundColor: colors.primaryLight + '20',

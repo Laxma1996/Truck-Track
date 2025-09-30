@@ -282,8 +282,15 @@ export default function AdminScreen({ navigation }) {
     const finishedJobs = jobs.filter(job => job.status === 'finished').length;
     const deletedJobs = jobs.filter(job => job.status === 'deleted').length;
     
+    // Get list of active usernames
+    const activeUsernames = users.map(user => user.username);
+    
     const jobsByUser = jobs.reduce((acc, job) => {
-      acc[job.username] = (acc[job.username] || 0) + 1;
+      // Check if user still exists in users table
+      const userExists = activeUsernames.includes(job.username);
+      const displayName = userExists ? job.username : 'User Deleted';
+      
+      acc[displayName] = (acc[displayName] || 0) + 1;
       return acc;
     }, {});
 
@@ -534,20 +541,31 @@ export default function AdminScreen({ navigation }) {
                 {Object.entries(stats.jobsByUser)
                   .sort(([,a], [,b]) => b - a)
                   .slice(0, 6)
-                  .map(([user, count], index) => (
-                    <View key={user} style={styles.topUserItem}>
-                      <View style={styles.topUserRank}>
-                        <Text style={styles.topUserRankNumber}>{index + 1}</Text>
+                  .map(([user, count], index) => {
+                    const isDeletedUser = user === 'User Deleted';
+                    return (
+                      <View key={user} style={styles.topUserItem}>
+                        <View style={[styles.topUserRank, isDeletedUser && styles.topUserRankDeleted]}>
+                          <Text style={styles.topUserRankNumber}>{index + 1}</Text>
+                        </View>
+                        <View style={styles.topUserInfo}>
+                          <Text style={[styles.topUserName, isDeletedUser && styles.topUserNameDeleted]}>
+                            {user}
+                          </Text>
+                          <Text style={[styles.topUserCount, isDeletedUser && styles.topUserCountDeleted]}>
+                            {count} jobs
+                          </Text>
+                        </View>
+                        <View style={styles.topUserBar}>
+                          <View style={[
+                            styles.topUserBarFill, 
+                            isDeletedUser && styles.topUserBarFillDeleted,
+                            { width: `${(count / Math.max(...Object.values(stats.jobsByUser))) * 100}%` }
+                          ]} />
+                        </View>
                       </View>
-                      <View style={styles.topUserInfo}>
-                        <Text style={styles.topUserName}>{user}</Text>
-                        <Text style={styles.topUserCount}>{count} jobs</Text>
-                      </View>
-                      <View style={styles.topUserBar}>
-                        <View style={[styles.topUserBarFill, { width: `${(count / Math.max(...Object.values(stats.jobsByUser))) * 100}%` }]} />
-                      </View>
-                    </View>
-                  ))}
+                    );
+                  })}
               </View>
             </View>
           </View>
@@ -1404,6 +1422,21 @@ const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: colors.primary,
     borderRadius: 3,
+  },
+  // Deleted user styles
+  topUserRankDeleted: {
+    backgroundColor: colors.gray[500],
+  },
+  topUserNameDeleted: {
+    color: colors.gray[500],
+    fontStyle: 'italic',
+  },
+  topUserCountDeleted: {
+    color: colors.gray[400],
+    fontStyle: 'italic',
+  },
+  topUserBarFillDeleted: {
+    backgroundColor: colors.gray[400],
   },
   userInfo: {
     flex: 1,
